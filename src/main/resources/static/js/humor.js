@@ -53,6 +53,25 @@ const PortfolioHumor = (function() {
 
       const now = ctx.currentTime;
 
+      if (type === 'spiralPaper') {
+        const duration = 0.19;
+        const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+        const samples = buffer.getChannelData(0);
+        for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+        const noise = ctx.createBufferSource();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+        noise.buffer = buffer;
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(3100, now);
+        filter.frequency.exponentialRampToValueAtTime(1000, now + duration);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.045);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        noise.connect(filter).connect(gain).connect(ctx.destination);
+        noise.start(now);
+        return;
+      }
       if (type === 'pageFlipSlow' || type === 'pageFlip') {
         // Slow, realistic, soothing paper & plastic sleeve glide sound (1.1s)
         const dur = 1.1;

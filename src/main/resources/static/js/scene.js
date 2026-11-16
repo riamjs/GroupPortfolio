@@ -1,4 +1,7 @@
 /** Interactive group portfolio desk in a Philippine high school classroom. */
+// Seat-relative clearance in scene units (four units per metre).
+const WALK_BOUNDS = Object.freeze({ minX: -1.8, maxX: 1.8, minZ: -3.2, maxZ: 3.2 });
+const REAR_WALK_LIMIT = 8.35; // Leave clearance at the rear wall and door.
 const tabletopLayout = [
   { item: 'spiral-notebook', x: -2.9, z: 1.05, yaw: 0.14 },
   { item: 'long-folder', x: -0.95, z: 0.55, yaw: -0.11 },
@@ -19,8 +22,60 @@ class CameraRig {
     this.applyLook();
   }
 
-  enableWalk() {
-    // TODO: Implement walk mode with WASD and classroom collision boxes.
+  enableWalk(table, isZoomed) {
+    if (this.mode === 'walk') return;
+    this.mode = 'walk';
+    this.keys = new Set();
+    this.velocity = new THREE.Vector2();
+    this.tableBounds = new THREE.Box3().setFromObject(table).expandByScalar(0.4);
+    this.walkBlocked = () => isZoomed() || document.activeElement?.matches('input, textarea') ||
+      document.querySelector('#bookOverlay.active');
+    const controls = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyR']);
+    window.addEventListener('keydown', event => {
+      if (!controls.has(event.code) || event.repeat || event.ctrlKey || event.metaKey ||
+          event.altKey || this.walkBlocked()) return;
+      if (event.code === 'KeyR') {
+        this.clearWalk();
+        this.camera.position.copy(this.seat);
+      } else {
+        this.keys.add(event.code);
+      }
+    });
+    window.addEventListener('keyup', event => this.keys.delete(event.code));
+    window.addEventListener('blur', () => this.clearWalk());
+    document.addEventListener('focusin', event => {
+      if (event.target.matches?.('input, textarea')) this.clearWalk();
+    });
+  }
+
+  clearWalk() {
+    this.keys.clear();
+    this.velocity.set(0, 0);
+  }
+
+  walk(dt) {
+    if (this.walkBlocked()) {
+      this.clearWalk();
+      return;
+    }
+    const down = code => Number(this.keys.has(code));
+    const forward = down('KeyW') - down('KeyS');
+    const right = down('KeyD') - down('KeyA');
+    const speed = (down('ShiftLeft') || down('ShiftRight') ? 1.8 : 1) * 3.2;
+    const scale = speed / Math.max(1, Math.hypot(right, forward));
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    const blend = 1 - Math.exp(-12 * dt);
+    this.velocity.x += ((right * cos + forward * sin) * scale - this.velocity.x) * blend;
+    this.velocity.y += ((right * sin - forward * cos) * scale - this.velocity.y) * blend;
+    const p = this.camera.position;
+    const clamp = THREE.MathUtils.clamp;
+    p.x = clamp(p.x + this.velocity.x * dt, this.seat.x + WALK_BOUNDS.minX, this.seat.x + WALK_BOUNDS.maxX);
+    const box = this.tableBounds;
+    // The walk area is behind the desk. Slide along its padded rear edge.
+    const minZ = p.x >= box.min.x && p.x <= box.max.x ? box.max.z : -Infinity;
+    p.z = clamp(p.z + this.velocity.y * dt, Math.max(this.seat.z + WALK_BOUNDS.minZ, minZ),
+      Math.min(this.seat.z + WALK_BOUNDS.maxZ, REAR_WALK_LIMIT));
+    p.y = this.seat.y;
   }
 
   aim(yaw, pitch) {
@@ -493,6 +548,7 @@ class DeskScene {
     const trimMesh = new THREE.Mesh(trimGeo, trimMat);
     trimMesh.position.y = -0.04;
     this.deskGroup.add(trimMesh);
+    this.rig.enableWalk(trimMesh, () => this.isCameraZoomed);
 
     // Desk legs
     const legGeo = new THREE.CylinderGeometry(0.12, 0.1, 2.65, 12);
@@ -861,7 +917,7 @@ class DeskScene {
       {
             "id": 4,
             "name": "Nicole De Guzman",
-            "section": "BSIT-1A",
+            "section": "BSIT 3-1",
             "deskItem": "intermediate-pad",
             "tagline": "My code works, but nobody knows why (especially me)",
             "folderLabel": "secret_thesis_do_not_delete",
@@ -1253,8 +1309,9 @@ class DeskScene {
     const portrait = aspect < 0.75;
     const compact = aspect < 1.15;
     this.camera.fov = portrait ? 68 : compact ? 58 : 50;
+    const oldSeat = this.rig.seat.clone();
     this.rig.seat.set(0, portrait ? 4.3 : compact ? 4.2 : 4, portrait ? 7.2 : compact ? 6.2 : 5.2);
-    if (!this.isCameraZoomed) this.camera.position.copy(this.rig.seat);
+    if (!this.isCameraZoomed) this.camera.position.sub(oldSeat).add(this.rig.seat);
     this.camera.updateProjectionMatrix();
     if (this.renderer) {
       this.renderer.setSize(width, height);
@@ -1547,7 +1604,11 @@ class DeskScene {
     const member = folderMesh.userData.member;
     this.activeFolder = folderMesh;
     this.isCameraZoomed = true;
-    this.seatedOrientation = this.camera.quaternion.clone();
+    this.preZoomPosition = this.camera.position.clone();
+    this.preZoomOrientation = this.camera.quaternion.clone();
+    this.rig.targetYaw = this.rig.yaw;
+    this.rig.targetPitch = this.rig.pitch;
+    this.rig.clearWalk();
     this.isDraggingView = false;
     this.hideTooltip();
 
@@ -1616,23 +1677,25 @@ class DeskScene {
       const turn = { progress: 0 };
       gsap.to(turn, {
         progress: 1, duration: 0.8, ease: 'power3.inOut',
-        onUpdate: () => this.camera.quaternion.slerpQuaternions(fromOrientation, this.seatedOrientation, turn.progress)
+        onUpdate: () => this.camera.quaternion.slerpQuaternions(fromOrientation, this.preZoomOrientation, turn.progress)
       });
       gsap.to(this.camera.position, {
         overwrite: true,
-        x: this.rig.seat.x,
-        y: this.rig.seat.y,
-        z: this.rig.seat.z,
+        x: this.preZoomPosition.x,
+        y: this.preZoomPosition.y,
+        z: this.preZoomPosition.z,
         duration: 0.8,
         ease: 'power3.inOut',
         onComplete: () => {
-          this.camera.position.copy(this.rig.seat);
+          this.camera.position.copy(this.preZoomPosition);
+          this.camera.quaternion.copy(this.preZoomOrientation);
           this.isCameraZoomed = false;
           this.activeFolder = null;
         }
       });
     } else {
-      this.camera.position.copy(this.rig.seat);
+      this.camera.position.copy(this.preZoomPosition);
+      this.camera.quaternion.copy(this.preZoomOrientation);
       this.isCameraZoomed = false;
       this.activeFolder = null;
     }
@@ -1719,7 +1782,11 @@ class DeskScene {
     if (!note) return;
 
     this.isCameraZoomed = true;
-    this.seatedOrientation = this.camera.quaternion.clone();
+    this.preZoomPosition = this.camera.position.clone();
+    this.preZoomOrientation = this.camera.quaternion.clone();
+    this.rig.targetYaw = this.rig.yaw;
+    this.rig.targetPitch = this.rig.pitch;
+    this.rig.clearWalk();
     this.isDraggingView = false;
     this.hideTooltip();
     this.activeStickyMesh = visualMesh;
@@ -1919,7 +1986,12 @@ class DeskScene {
     this.classroomShafts.forEach((beam, i) => { beam.position.y = 2.42 + 0.055 * Math.sin(seconds * 0.24 + i); });
     this.classroomDust.position.set(0.13 * Math.sin(seconds * 0.31), 0.12 * Math.sin(seconds * 0.21), 0.11 * Math.cos(seconds * 0.25));
 
-    if (!this.isCameraZoomed) this.rig.update();
+    const dt = Math.min(seconds - (this.lastFrameSeconds ?? seconds), 0.05);
+    this.lastFrameSeconds = seconds;
+    if (!this.isCameraZoomed) {
+      this.rig.update();
+      this.rig.walk(dt);
+    }
 
     if (this.renderer && this.scene && this.camera) {
       this.updateFrontWall(seconds);
