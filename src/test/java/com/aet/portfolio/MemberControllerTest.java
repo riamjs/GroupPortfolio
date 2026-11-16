@@ -23,8 +23,9 @@ public class MemberControllerTest {
         mockMvc.perform(get("/api/members").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(5)))
-                .andExpect(jsonPath("$[0].name", is("Joshua Deliva")))
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].name", contains("Riam Jaye Santiago", "John Vernie Dela Cruz", "Charella Magalpoc", "Nicole De Guzman")))
+                .andExpect(jsonPath("$[*].deskItem", contains("spiral-notebook", "long-folder", "theme-book", "intermediate-pad")))
                 .andExpect(jsonPath("$[0].coverColor", is("#FF7A00")))
                 .andExpect(jsonPath("$[0].pages", hasSize(6)))
                 .andExpect(jsonPath("$[0].skills", not(empty())));
@@ -36,7 +37,7 @@ public class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Joshua Deliva")))
+                .andExpect(jsonPath("$.name", is("Riam Jaye Santiago")))
                 .andExpect(jsonPath("$.tagline", containsString("Emerging")))
                 .andExpect(jsonPath("$.pages[0].title", is("About Me")))
                 .andExpect(jsonPath("$.pages[0].border", is("wavy-pink.svg")));

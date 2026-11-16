@@ -3,7 +3,6 @@
    Ultra-Smooth, Realistic 3D Double-Sided Page Flip with Dynamic Shadow & Gloss
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 
 :root {
   --book-width: 460px;
@@ -12,7 +11,7 @@
   --book-radius: 16px;
   --font-title: 'Outfit', sans-serif;
   --font-text: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono: 'Cascadia Mono', monospace;
   --shadow-book: 0 30px 70px -15px rgba(0, 0, 0, 0.7), 0 0 50px rgba(0, 0, 0, 0.4);
   /* Slower, ultra-smooth realistic page turn duration and curve */
   --page-turn-duration: 1.35s;
@@ -781,4 +780,144 @@
   .book-key-hints {
     display: none;
   }
+}
+
+.theme-spiral-notebook .page-inner {
+  background: repeating-linear-gradient(#fff 0 25px, #d4deeb 25px 26px);
+}
+
+.theme-long-folder .page-inner {
+  background: #fff4db;
+}
+
+.theme-theme-book .page-inner {
+  background-color: #fcfaff;
+  background-image: radial-gradient(#ccc0d7 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+.theme-intermediate-pad .page-inner {
+  background: linear-gradient(90deg, transparent 9%, #edb5bc 9% 9.4%, transparent 9.4%),
+    repeating-linear-gradient(#fffcf2 0 21px, #c9d9e0 21px 22px);
+}
+
+@font-face {
+  font-family: 'Patrick Hand';
+  src: url('../fonts/PatrickHand-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+.theme-spiral {
+  --font-mono: 'Patrick Hand', cursive;
+  --font-title: 'Patrick Hand', cursive;
+  --font-text: 'Patrick Hand', cursive;
+}
+.theme-spiral .book-page * { font-family: 'Patrick Hand', cursive; }
+.theme-spiral .page-inner {
+  color: #244c86;
+  background:
+    radial-gradient(circle at 15px 50%, #6d7986 0 4px, #c3cbd0 5px, transparent 6px) left top / 28px 32% repeat-y,
+    linear-gradient(90deg, transparent 33px, #dc909b 33px 35px, transparent 35px),
+    repeating-linear-gradient(#fffefa 0 25px, #bad7ee 25px 26px);
+}
+.theme-spiral .page-svg-border { display: none; }
+.theme-spiral .page-body-content { padding-left: max(44px, 12%); }
+.theme-spiral .page-body-content :is(.page-title, .page-text, .page-category-tag, .spiral-skills) { color: #244c86; }
+.theme-spiral .page-text, .theme-spiral .spiral-skills { font-size: 1.12rem; line-height: 26px; }
+.theme-spiral .page-title { display: block; border: 0; margin-bottom: 4px; }
+.theme-spiral .page-title::after { content: '〰 ☆'; display: block; font-size: 16px; line-height: 14px; }
+.theme-spiral .spiral-skills { list-style: none; margin: 0; padding: 0; }
+.theme-spiral .spiral-skills li { position: relative; padding-left: 1.4em; }
+.theme-spiral .spiral-skills li::before { content: '✓'; position: absolute; left: 0; }
+
+@font-face {
+  font-family: 'Dancing Script';
+  src: url('../fonts/DancingScript.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+.theme-themebook .book-page * {
+  font-family: 'Dancing Script', cursive;
+}
+.theme-themebook .page-inner {
+  background:
+    linear-gradient(to right, transparent 31px, #d98491 31px 32px, transparent 32px 36px, #d98491 36px 37px, transparent 37px),
+    repeating-linear-gradient(to bottom, #fffdf5 0 27px, #bed6ec 27px 28px);
+}
+.theme-themebook .page-svg-border { display: none; }
+.theme-themebook .page-body-content { padding: 28px 24px 28px 50px; }
+.theme-themebook .page-title {
+  display: block;
+  color: #183d71;
+  font-size: 1.8rem;
+  line-height: 36px;
+  text-align: center;
+  border-bottom: 1px solid #728eb1;
+}
+.theme-themebook .page-text, .theme-themebook .themebook-skills {
+  color: #183d71;
+  font-size: 1.28rem;
+  line-height: 28px;
+}
+.theme-themebook .page-text { text-indent: 1.5em; }
+.theme-themebook .themebook-skills { margin: 0; padding-left: 2em; }
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('../fonts/PlusJakartaSans.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
+.theme-folder .book-page * { font-family: 'Plus Jakarta Sans', sans-serif; }
+.theme-folder .page-inner, .theme-folder .page-face.page-back { background: #fffefa; }
+.theme-folder .page-svg-border { display: none; }
+.theme-folder .page-body-content { padding: 42px 9% 30px; }
+.theme-folder .folder-letterhead {
+  display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between;
+  padding-bottom: 9px; border-bottom: 1px solid #798591;
+  margin-bottom: 12px; font-size: .78rem; font-weight: 600;
+}
+.theme-folder .page-title { border-bottom: 1px solid #c5cbd1; }
+.theme-folder .page-inner::after, .theme-folder .page-inner::before {
+  content: ''; position: absolute; z-index: 5; pointer-events: none;
+  top: -7px; right: 24px; width: 11px; height: 35px; border: 2px solid #828c98;
+  border-radius: 8px; transform: rotate(9deg); box-shadow: 1px 1px 2px #0002;
+}
+.theme-folder .page-inner::after { top: 2px; right: 27px; width: 5px; height: 21px; border-top: 0; }
+.theme-folder .folder-stamp {
+  align-self: flex-end; transform: rotate(-8deg); border: 3px double #316848;
+  padding: 3px 9px; margin: 15px 2px; color: #316848; letter-spacing: .14em; font-weight: 800;
+}
+
+.riam-collage-cover { position: absolute; inset: 0; background: #183454 url('../assets/textures/aldub-cover.png') center / 100% 100%; }
+.riam-collage-tag { position: absolute; bottom: 7%; right: 5%; display: flex; align-items: center; gap: .5em; padding: .5em .8em; border: 4px solid #39cfe4; border-radius: 12px; background: #fff; color: #236943; }
+.riam-collage-tag img { width: 36px; }
+.riam-collage-tag span { display: grid; }
+.riam-collage-tag strong { color: #77369a; border-bottom: 2px solid #eb89b3; }
+.theme-pad .book-page * { font-family: 'Patrick Hand', cursive; }
+.theme-pad .page-inner {
+  background: linear-gradient(90deg,transparent 33px,#da8e97 33px 35px,transparent 35px),
+    repeating-linear-gradient(#fffae8 0 25px,#b9cfe1 25px 26px);
+}
+.theme-pad .page-svg-border { display: none; }
+.theme-pad .page-body-content { padding-left: max(46px,12%); }
+.theme-pad .page-text { font-size: 1.15rem; line-height: 26px; color: #284d82; }
+.theme-pad .page-title { color: #284d82; }
+.theme-pad .book-page { transform-origin: center top; transition: none; }
+.theme-pad .book-page.flipped { visibility: hidden; pointer-events: none; }
+.theme-pad .book-page.turning { visibility: visible; z-index: 100 !important; pointer-events: none; animation: pad-tear 1.35s both; }
+.theme-pad .book-page.turning:not(.flipped) { animation-direction: reverse; }
+.theme-pad .book-page.turning .page-front { animation: pad-curl 1.35s both; }
+.theme-pad .book-page.turning:not(.flipped) .page-front { animation-direction: reverse; }
+@keyframes pad-tear {
+  0% { transform: none; opacity: 1; }
+  35% { transform: perspective(850px) rotateX(-33deg) translateY(-3%); }
+  62% { transform: perspective(850px) translate(3%,-15%) rotateX(-48deg) rotateZ(3deg); opacity: 1; }
+  100% { transform: translate(16%,75%) rotateZ(14deg) rotateX(-18deg); opacity: 0; }
+}
+@keyframes pad-curl {
+  0%,100% { border-radius: 2px; }
+  40%,65% { border-radius: 2px 3px 35% 10%; box-shadow: inset -5px -20px 18px -12px #9b885c88; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-pad .book-page.turning, .theme-pad .book-page.turning .page-front { animation-duration: 1ms; }
 }

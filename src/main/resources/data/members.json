@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "name": "Joshua Deliva",
+    "name": "Riam Jaye Santiago",
     "section": "BSIT-1A",
     "subject": "Advanced Emerging Technologies",
     "tagline": "Emerging technologies, emerging deadlines",
@@ -11,45 +11,62 @@
     "pages": [
       {
         "title": "About Me",
-        "content": "Hi! I am [Member 1 Name], an aspiring technologist in BSIT-1A. I love tinkering with computers, building weird web experiments, and converting excessive caffeine into lines of working code. Motto: 'If it works, don't touch it!'",
+        "content": "Hi! I am Riam Jaye Santiago, an aspiring technologist in BSIT-1A. I love tinkering with computers, building weird web experiments, and converting excessive caffeine into lines of working code. Motto: 'If it works, don't touch it!'\n\nOpen the cover and follow the pages in order, or skip ahead to the projects. Each section shows a different side of the person behind this little corner of the desk.",
         "border": "wavy-pink.svg"
       },
       {
         "title": "Hobbies",
-        "content": "• [Member 1 hobby: Mechanical keyboards & soldering]\n• [Member 1 hobby: Late night gaming sessions]\n• [Member 1 hobby: Watching 3-hour long video essays on tech history]\n• [Member 1 hobby: Hunting for rare stickers to put on my laptop]",
+        "content": "• Mechanical keyboards & soldering\n• Late night gaming sessions\n• Watching 3-hour long video essays on tech history\n• Hunting for rare stickers to put on my laptop\n\nThere is a pattern in this list: curiosity usually wins over a perfectly sensible bedtime. Pick one of these topics for the guestbook and see where the conversation goes. A good recommendation is always worth saving for the next study break.",
         "border": "blobs-orange.svg"
       },
       {
-        "title": "Skills & Superpowers",
-        "content": "Comfortable with Java, JavaScript, and emerging web technologies. Special ability: figuring out why code throws NullPointerException at 2:00 AM after staring at the screen in silence for 45 minutes.",
+        "title": "Skills",
+        "content": "Comfortable with Java, JavaScript, and emerging web technologies. Special ability: figuring out why code throws NullPointerException at 2:00 AM after staring at the screen in silence for 45 minutes.\n\nThe real test comes when a teammate asks for help. Start with the smallest example, talk through what should happen, and change one thing at a time. Sometimes explaining the problem out loud is enough to spot the answer.",
         "border": "vines-flowers.svg"
       },
       {
         "title": "Projects",
-        "content": "• The Messy Desk 3D Portfolio (This website! Built with Spring Boot & Three.js)\n• [Member 1 Project: Discord Bot for automated study timers]\n• [Member 1 Project: Terminal-based budget tracker written in Java]",
+        "content": "• The Messy Desk 3D Portfolio (This website! Built with Spring Boot & Three.js)\n• Discord Bot for automated study timers\n• Terminal-based budget tracker written in Java\n\nThese ideas fit on one page, but getting a working demo takes more than a catchy title. The fun part is turning a rough sketch into something another person can actually open, try, and give feedback on.",
         "border": "dripping-paint.svg"
       },
       {
-        "title": "Fun Facts & Roast Me",
-        "content": "Has 47 browser tabs open right now and believes every single one is critical. Still uses console.log() as a primary life debugging tool. Believes dark mode is an internationally recognized human right.",
+        "title": "Fun Facts",
+        "content": "Has 47 browser tabs open right now and believes every single one is critical. Still uses console.log() as a primary life debugging tool. Believes dark mode is an internationally recognized human right.\n\nThe desk has a guestbook for exactly this kind of confession. If any of that sounds familiar, leave a note with your own most questionable study habit. The rubber duck has heard worse.",
         "border": "bows-stars.svg"
       },
       {
-        "title": "Contact & Goals",
-        "content": "Email: [joshua.member1@university.edu]\nGitHub: @joshua-dev\nTech Goal: Master distributed systems, build software that millions of people actually enjoy using, and finally get 8 hours of sleep.",
+        "title": "Contact",
+        "content": "Master distributed systems, build software that millions of people actually enjoy using, and finally get 8 hours of sleep.\n\nLeave a message in the desk guestbook to share a project idea or ask about one of the pages. A specific question makes a great conversation starter. Mention the part that caught your eye, or suggest something you would like to see in a future version.",
         "border": "dotted-frame.svg"
       }
     ],
     "skills": [
-      { "name": "Ctrl+C, Ctrl+V", "level": 98, "funnyLabel": "Certified Copy-Paste Architect" },
-      { "name": "Java Spring Boot", "level": 82, "funnyLabel": "Autowired everything, hope it wires" },
-      { "name": "Googling Errors", "level": 94, "funnyLabel": "Finds answers from 2011 Indian tutorials" },
-      { "name": "Rubber Duck Debugging", "level": 90, "funnyLabel": "The duck knows all my deepest secrets" }
-    ]
+      {
+        "name": "Ctrl+C, Ctrl+V",
+        "level": 98,
+        "funnyLabel": "Certified Copy-Paste Architect"
+      },
+      {
+        "name": "Java Spring Boot",
+        "level": 82,
+        "funnyLabel": "Autowired everything, hope it wires"
+      },
+      {
+        "name": "Googling Errors",
+        "level": 94,
+        "funnyLabel": "Finds answers from 2011 Indian tutorials"
+      },
+      {
+        "name": "Rubber Duck Debugging",
+        "level": 90,
+        "funnyLabel": "The duck knows all my deepest secrets"
+      }
+    ],
+    "deskItem": "spiral-notebook"
   },
   {
     "id": 2,
-    "name": "Maria Santos",
+    "name": "John Vernie Dela Cruz",
     "section": "BSIT-1A",
     "subject": "Advanced Emerging Technologies",
     "tagline": "Powered by coffee, panic, and StackOverflow",
@@ -59,46 +76,63 @@
     "pages": [
       {
         "title": "About Me",
-        "content": "Hello! I am [Member 2 Name], a front-end enthusiast and UI lover in BSIT-1A. I believe websites should look like art galleries and run as fast as lightning. My life goal is centering divs on the first try without weeping.",
+        "content": "Hello! I am John Vernie Dela Cruz, a front-end enthusiast and UI lover in BSIT-1A. I believe websites should look like art galleries and run as fast as lightning. My life goal is centering divs on the first try without weeping.\n\nOpen the cover and follow the pages in order, or skip ahead to the projects. Each section shows a different side of the person behind this little corner of the desk.",
         "border": "wavy-pink.svg"
       },
       {
         "title": "Hobbies",
-        "content": "• [Member 2 hobby: Digital illustration & vector art]\n• [Member 2 hobby: Collecting aesthetic Notion templates]\n• [Member 2 hobby: Organizing Spotify playlists by emotional weather]\n• [Member 2 hobby: Exploring aesthetic coffee shops]",
+        "content": "• Digital illustration & vector art\n• Collecting aesthetic Notion templates\n• Organizing Spotify playlists by emotional weather\n• Exploring aesthetic coffee shops\n\nThere is a pattern in this list: curiosity usually wins over a perfectly sensible bedtime. Pick one of these topics for the guestbook and see where the conversation goes. A good recommendation is always worth saving for the next study break.",
         "border": "blobs-orange.svg"
       },
       {
         "title": "Skills & Superpowers",
-        "content": "Proficient in modern CSS layout, SVG animation, and component design. Superpower: can spot a misaligned element by 1 single pixel from across the lecture hall without squinting.",
+        "content": "Proficient in modern CSS layout, SVG animation, and component design. Superpower: can spot a misaligned element by 1 single pixel from across the lecture hall without squinting.\n\nThe real test comes when a teammate asks for help. Start with the smallest example, talk through what should happen, and change one thing at a time. Sometimes explaining the problem out loud is enough to spot the answer.",
         "border": "vines-flowers.svg"
       },
       {
         "title": "Projects",
-        "content": "• [Member 2 Project: Interactive Design System in Vanilla CSS]\n• [Member 2 Project: Daily Habit Tracker with pastel gradients]\n• [Member 2 Project: Clear-Book 3D Flip Engine for our AET portfolio]",
+        "content": "• Interactive Design System in Vanilla CSS\n• Daily Habit Tracker with pastel gradients\n• Clear-Book 3D Flip Engine for our AET portfolio\n\nThese ideas fit on one page, but getting a working demo takes more than a catchy title. The fun part is turning a rough sketch into something another person can actually open, try, and give feedback on.",
         "border": "dripping-paint.svg"
       },
       {
         "title": "Fun Facts & Roast Me",
-        "content": "Spends 4 hours picking the perfect color palette and 15 minutes writing the actual code. Owns 12 water bottles but only drinks iced caramel macchiato. Favorite CSS property: filter: drop-shadow().",
+        "content": "Spends 4 hours picking the perfect color palette and 15 minutes writing the actual code. Owns 12 water bottles but only drinks iced caramel macchiato. Favorite CSS property: filter: drop-shadow().\n\nThe desk has a guestbook for exactly this kind of confession. If any of that sounds familiar, leave a note with your own most questionable study habit. The rubber duck has heard worse.",
         "border": "bows-stars.svg"
       },
       {
         "title": "Contact & Goals",
-        "content": "Email: [maria.member2@university.edu]\nPortfolio: behance.net/maria-ui\nTech Goal: Become a lead product designer at an innovative creative studio and author a book on accessible design.",
+        "content": "Become a lead product designer at an innovative creative studio and author a book on accessible design.\n\nLeave a message in the desk guestbook to share a project idea or ask about one of the pages. A specific question makes a great conversation starter. Mention the part that caught your eye, or suggest something you would like to see in a future version.",
         "border": "dotted-frame.svg"
       }
     ],
     "skills": [
-      { "name": "CSS Flexbox & Grid", "level": 92, "funnyLabel": "Can center a div (first try 50% of the time)" },
-      { "name": "Color Theory", "level": 88, "funnyLabel": "Knows 40 shades of off-white" },
-      { "name": "Coffee Brewing", "level": 99, "funnyLabel": "Converts caffeine directly into pixels" },
-      { "name": "Figma Prototyping", "level": 85, "funnyLabel": "Auto-layout wizard" }
-    ]
+      {
+        "name": "CSS Flexbox & Grid",
+        "level": 92,
+        "funnyLabel": "Can center a div (first try 50% of the time)"
+      },
+      {
+        "name": "Color Theory",
+        "level": 88,
+        "funnyLabel": "Knows 40 shades of off-white"
+      },
+      {
+        "name": "Coffee Brewing",
+        "level": 99,
+        "funnyLabel": "Converts caffeine directly into pixels"
+      },
+      {
+        "name": "Figma Prototyping",
+        "level": 85,
+        "funnyLabel": "Auto-layout wizard"
+      }
+    ],
+    "deskItem": "long-folder"
   },
   {
     "id": 3,
-    "name": "Kenji Sato",
-    "section": "BSIT-1A",
+    "name": "Charella Magalpoc",
+    "section": "BSIT 3-1",
     "subject": "Advanced Emerging Technologies",
     "tagline": "99% skill, 1% luck, 100% procrastination",
     "folderLabel": "Homework (Unfinished)",
@@ -107,45 +141,62 @@
     "pages": [
       {
         "title": "About Me",
-        "content": "Hey there! I am [Member 3 Name], an aspiring systems engineer and 3D graphics enthusiast in BSIT-1A. I love understanding how things tick under the hood, from computer graphics pipelines to Linux kernels.",
+        "content": "I am Charella Magalpoc, a student of BSIT 3-1 with an interest in systems engineering and computer graphics. When I turn a model on the screen, I like to think about how the program keeps track of every point. A question as simple as that can take me from a drawing on paper to an afternoon of experimenting with code.",
         "border": "wavy-pink.svg"
       },
       {
         "title": "Hobbies",
-        "content": "• [Member 3 hobby: 3D modeling in Blender & shaders]\n• [Member 3 hobby: Speedrunning retro games]\n• [Member 3 hobby: Customizing Linux desktop dotfiles for 6 hours]\n• [Member 3 hobby: Playing electric bass]",
+        "content": "A model in Blender usually begins with a familiar object. I like to turn it slowly under a light and see which details make its shape recognizable. Away from the screen, I play the electric bass. Learning a difficult passage reminds me of practicing a route in a retro game. In either case, the small corrections matter more than the speed of the first attempt.",
         "border": "blobs-orange.svg"
       },
       {
-        "title": "Skills & Superpowers",
-        "content": "Strong grasp of Three.js, WebGL mathematics, and algorithm analysis. Superpower: can read compiler error messages without panicking and immediately know which semicolon is missing.",
+        "title": "Skills",
+        "content": "I approach technical problems by looking for one change I can test. If an object vanishes from a scene, I check its position before rebuilding it. If a program stops responding, I try to reproduce the problem before restarting it. The following skills help me carry out those checks and keep a record of the changes that worked.",
         "border": "vines-flowers.svg"
       },
       {
         "title": "Projects",
-        "content": "• [Member 3 Project: 3D Solar System simulation in WebGL]\n• [Member 3 Project: The Messy Desk 3D Environment & Raycasting]\n• [Member 3 Project: Lightweight physics engine in JavaScript]",
+        "content": "The desk in our group portfolio poses a small but interesting problem. A visitor clicks a flat screen and expects to pick up an object in a three-dimensional scene. Raycasting connects those two actions. My other project interests include a model of the solar system and a small physics engine. Both begin with the same question: how should an object move?",
         "border": "dripping-paint.svg"
       },
       {
-        "title": "Fun Facts & Roast Me",
-        "content": "Spends more time customizing his terminal theme than actually writing code in it. Refuses to use an IDE without vim keybindings. Will talk your ear off about quaternions if you ask him for the time.",
+        "title": "Fun Facts",
+        "content": "I can spend more time choosing the colors of my terminal than using the command that prompted me to open it. I also enjoy explaining how rotations work. A request for the time probably does not call for a lesson on quaternions, though a clock face does make a surprisingly convenient illustration. I try to give the time first.",
         "border": "bows-stars.svg"
       },
       {
-        "title": "Contact & Goals",
-        "content": "Email: [kenji.member3@university.edu]\nGitHub: @kenji-3d\nTech Goal: Build real-time 3D simulation tools for scientific research and contribute to open-source graphics libraries.",
+        "title": "Contact",
+        "content": "I hope to contribute to open-source graphics libraries and develop simulations that help people investigate scientific questions. If one of the projects in this book reminds you of a problem worth exploring, you may leave a message in the desk guestbook. I would especially like to hear what you would try to represent and which details you would keep in a first model.",
         "border": "dotted-frame.svg"
       }
     ],
     "skills": [
-      { "name": "Three.js / WebGL", "level": 89, "funnyLabel": "Turns vectors into rotating cubes" },
-      { "name": "Turning Off and On", "level": 99, "funnyLabel": "Universal Master of IT Support" },
-      { "name": "Vim Keybindings", "level": 80, "funnyLabel": "Knows how to exit Vim (:wq!)" },
-      { "name": "Git Command Line", "level": 86, "funnyLabel": "Never uses git push --force (almost)" }
-    ]
+      {
+        "name": "Three.js / WebGL",
+        "level": 89,
+        "funnyLabel": "Turns vectors into rotating cubes"
+      },
+      {
+        "name": "Turning Off and On",
+        "level": 99,
+        "funnyLabel": "Universal Master of IT Support"
+      },
+      {
+        "name": "Vim Keybindings",
+        "level": 80,
+        "funnyLabel": "Knows how to exit Vim (:wq!)"
+      },
+      {
+        "name": "Git Command Line",
+        "level": 86,
+        "funnyLabel": "Never uses git push --force (almost)"
+      }
+    ],
+    "deskItem": "theme-book"
   },
   {
     "id": 4,
-    "name": "Sophia Reyes",
+    "name": "Nicole De Guzman",
     "section": "BSIT-1A",
     "subject": "Advanced Emerging Technologies",
     "tagline": "My code works, but nobody knows why (especially me)",
@@ -155,88 +206,59 @@
     "pages": [
       {
         "title": "About Me",
-        "content": "Hi! I am [Member 4 Name], backend architect and data enthusiast in BSIT-1A. I love making robust RESTful APIs, clean data architectures, and bulletproof validations so systems never fail even under chaos.",
+        "content": "Hi! I am Nicole De Guzman, backend architect and data enthusiast in BSIT-1A. I love making robust RESTful APIs, clean data architectures, and bulletproof validations so systems never fail even under chaos.\n\nOpen the cover and follow the pages in order, or skip ahead to the projects. Each section shows a different side of the person behind this little corner of the desk.",
         "border": "wavy-pink.svg"
       },
       {
         "title": "Hobbies",
-        "content": "• [Member 4 hobby: Solving algorithmic puzzles on LeetCode]\n• [Member 4 hobby: Baking sourdough bread and measuring grams precisely]\n• [Member 4 hobby: Urban gardening & plant propagation]\n• [Member 4 hobby: Board game strategy nights with friends]",
+        "content": "• Solving algorithmic puzzles on LeetCode\n• Baking sourdough bread and measuring grams precisely\n• Urban gardening & plant propagation\n• Board game strategy nights with friends\n\nThere is a pattern in this list: curiosity usually wins over a perfectly sensible bedtime. Pick one of these topics for the guestbook and see where the conversation goes. A good recommendation is always worth saving for the next study break.",
         "border": "blobs-orange.svg"
       },
       {
         "title": "Skills & Superpowers",
-        "content": "Experienced with REST design, JSON serialization, security sanitization, and concurrent operations. Superpower: can spot an SQL injection vulnerability or unescaped HTML tag from a mile away.",
+        "content": "Experienced with REST design, JSON serialization, security sanitization, and concurrent operations. Superpower: can spot an SQL injection vulnerability or unescaped HTML tag from a mile away.\n\nThe real test comes when a teammate asks for help. Start with the smallest example, talk through what should happen, and change one thing at a time. Sometimes explaining the problem out loud is enough to spot the answer.",
         "border": "vines-flowers.svg"
       },
       {
         "title": "Projects",
-        "content": "• [Member 4 Project: Thread-safe Guestbook & Visit Counter API]\n• [Member 4 Project: Student Grade Predictor using regression]\n• [Member 4 Project: Encrypted note-taking app with AES]",
+        "content": "• Thread-safe Guestbook & Visit Counter API\n• Student Grade Predictor using regression\n• Encrypted note-taking app with AES\n\nThese ideas fit on one page, but getting a working demo takes more than a catchy title. The fun part is turning a rough sketch into something another person can actually open, try, and give feedback on.",
         "border": "dripping-paint.svg"
       },
       {
         "title": "Fun Facts & Roast Me",
-        "content": "Commented 'Do not delete this comment, it makes the code run' in a production file once. Takes notes in Markdown even when writing a grocery shopping list. Has 14 houseplants named after HTTP status codes.",
+        "content": "Commented 'Do not delete this comment, it makes the code run' in a production file once. Takes notes in Markdown even when writing a grocery shopping list. Has 14 houseplants named after HTTP status codes.\n\nThe desk has a guestbook for exactly this kind of confession. If any of that sounds familiar, leave a note with your own most questionable study habit. The rubber duck has heard worse.",
         "border": "bows-stars.svg"
       },
       {
         "title": "Contact & Goals",
-        "content": "Email: [sophia.member4@university.edu]\nLinkedIn: linkedin.com/in/sophia-reyes-dev\nTech Goal: Architect scalable cloud microservices that withstand Black Friday traffic surges without flinching.",
+        "content": "Architect scalable cloud microservices that withstand Black Friday traffic surges without flinching.\n\nLeave a message in the desk guestbook to share a project idea or ask about one of the pages. A specific question makes a great conversation starter. Mention the part that caught your eye, or suggest something you would like to see in a future version.",
         "border": "dotted-frame.svg"
       }
     ],
     "skills": [
-      { "name": "REST APIs", "level": 91, "funnyLabel": "200 OK is my spiritual state of mind" },
-      { "name": "Input Sanitization", "level": 95, "funnyLabel": "Little Bobby Tables was stopped here" },
-      { "name": "Documentation", "level": 84, "funnyLabel": "Writes comments future me will understand" },
-      { "name": "Debugging", "level": 88, "funnyLabel": "Follows stack traces like a detective" }
-    ]
-  },
-  {
-    "id": 5,
-    "name": "Liam Garcia",
-    "section": "BSIT-1A",
-    "subject": "Advanced Emerging Technologies",
-    "tagline": "Professional tab accumulator & dark mode advocate",
-    "folderLabel": "Project_Backup_Of_Backup_FINAL",
-    "photo": "assets/photos/member5.svg",
-    "coverColor": "#E11D48",
-    "pages": [
       {
-        "title": "About Me",
-        "content": "Hey! I am [Member 5 Name], full-stack explorer and humor coordinator in BSIT-1A. I believe tech projects should not only solve hard problems, but also bring a genuine smile to everyone who interacts with them.",
-        "border": "wavy-pink.svg"
+        "name": "REST APIs",
+        "level": 91,
+        "funnyLabel": "200 OK is my spiritual state of mind"
       },
       {
-        "title": "Hobbies",
-        "content": "• [Member 5 hobby: Writing humorous tech blogs & sketches]\n• [Member 5 hobby: Sound design & synthwave audio loops]\n• [Member 5 hobby: Drone flying & aerial photography]\n• [Member 5 hobby: Building mechanical desk gadgets]",
-        "border": "blobs-orange.svg"
+        "name": "Input Sanitization",
+        "level": 95,
+        "funnyLabel": "Little Bobby Tables was stopped here"
       },
       {
-        "title": "Skills & Superpowers",
-        "content": "Expert in GSAP timeline sequencing, web audio synthesis, interactive humor easter eggs, and user onboarding flows. Superpower: can defuse high-stress group project tension with a well-timed meme.",
-        "border": "vines-flowers.svg"
+        "name": "Documentation",
+        "level": 84,
+        "funnyLabel": "Writes comments future me will understand"
       },
       {
-        "title": "Projects",
-        "content": "• [Member 5 Project: Konami Code Gravity Inverter for 3D Desk]\n• [Member 5 Project: Synthesized Web Audio Soundboard]\n• [Member 5 Project: Fake Error Dialog generator for stress relief]",
-        "border": "dripping-paint.svg"
-      },
-      {
-        "title": "Fun Facts & Roast Me",
-        "content": "Believes 99% of computer errors can be solved by restarting the universe. Has committed with message 'asdfghjk' more than twice. Owns 3 rubber ducks, each dedicated to a different programming language.",
-        "border": "bows-stars.svg"
-      },
-      {
-        "title": "Contact & Goals",
-        "content": "Email: [liam.member5@university.edu]\nTwitter/X: @liam_codes\nTech Goal: Build interactive web experiences that win Awwwards and make programming accessible to younger students.",
-        "border": "dotted-frame.svg"
+        "name": "Debugging",
+        "level": 88,
+        "funnyLabel": "Follows stack traces like a detective"
       }
     ],
-    "skills": [
-      { "name": "GSAP Animation", "level": 94, "funnyLabel": "Makes everything bounce smoothly" },
-      { "name": "Web Audio API", "level": 83, "funnyLabel": "Beeps, boops, and coffee spill sounds" },
-      { "name": "Easter Egg Crafting", "level": 97, "funnyLabel": "Hides secrets everywhere" },
-      { "name": "Meme Engineering", "level": 99, "funnyLabel": "Certified Senior Humor Architect" }
-    ]
+    "deskItem": "intermediate-pad",
+    "school": "",
+    "grade": ""
   }
 ]

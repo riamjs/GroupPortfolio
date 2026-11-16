@@ -7,9 +7,17 @@ public class Member {
     private int id;
     private String name;
     private String section;
+    private String school;
+    private String grade;
+
+    public String getSchool() { return school; }
+    public void setSchool(String school) { this.school = school; }
+    public String getGrade() { return grade; }
+    public void setGrade(String grade) { this.grade = grade; }
     private String subject;
     private String tagline;
     private String folderLabel;
+    private String deskItem;
     private String photo;
     private String coverColor;
     private List<PageContent> pages = new ArrayList<>();
@@ -79,6 +87,14 @@ public class Member {
 
     public void setFolderLabel(String folderLabel) {
         this.folderLabel = folderLabel;
+    }
+
+    public String getDeskItem() {
+        return deskItem;
+    }
+
+    public void setDeskItem(String deskItem) {
+        this.deskItem = deskItem;
     }
 
     public String getPhoto() {
