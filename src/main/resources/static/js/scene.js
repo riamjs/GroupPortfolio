@@ -1,4 +1,11 @@
 /** Interactive group portfolio desk in a Philippine high school classroom. */
+// Keyboard look direction; drag keeps its original direction.
+const INVERT_X = false;
+const INVERT_Y = false;
+const MOUSE_YAW_RANGE = Math.PI * 1.15;
+const PITCH_RANGE = 1.5;
+const KEY_LOOK_VIEWPORTS_PER_SECOND = 0.5;
+const DEFAULT_PITCH = -Math.atan2(2.2, 6);
 const tabletopLayout = [
   { item: 'spiral-notebook', x: -2.9, z: 1.05, yaw: 0.14 },
   { item: 'long-folder', x: -0.95, z: 0.55, yaw: -0.11 },
@@ -10,17 +17,50 @@ const tabletopLayout = [
 class CameraRig {
   constructor(camera) {
     this.camera = camera;
-    this.mode = 'seated';
+    this.keys = new Set();
     this.seat = new THREE.Vector3(0, 4, 5.2);
     camera.position.copy(this.seat);
     camera.rotation.order = 'YXZ';
     this.yaw = this.targetYaw = 0;
-    this.pitch = this.targetPitch = -Math.atan2(2.2, 6);
+    this.pitch = this.targetPitch = DEFAULT_PITCH;
     this.applyLook();
   }
 
-  enableWalk() {
-    // TODO: Implement walk mode with WASD and classroom collision boxes.
+  bindKeyboardLook(isZoomed) {
+    this.lookBlocked = () => isZoomed() || document.activeElement?.matches('input, textarea') ||
+      document.querySelector('#bookOverlay.active');
+    const controls = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyR']);
+    window.addEventListener('keydown', event => {
+      if (!controls.has(event.code) || event.repeat || event.ctrlKey || event.metaKey ||
+          event.altKey || this.lookBlocked()) return;
+      if (event.code === 'KeyR') {
+        this.keys.clear();
+        this.yaw = this.targetYaw = 0;
+        this.pitch = this.targetPitch = DEFAULT_PITCH;
+        this.applyLook();
+      } else {
+        this.keys.add(event.code);
+      }
+    });
+    window.addEventListener('keyup', event => this.keys.delete(event.code));
+    window.addEventListener('blur', () => this.keys.clear());
+    document.addEventListener('focusin', event => {
+      if (event.target.matches?.('input, textarea')) this.keys.clear();
+    });
+  }
+
+  updateKeyboardLook(dt) {
+    if (!this.keys.size) return;
+    if (this.lookBlocked()) {
+      this.keys.clear();
+      return;
+    }
+    const horizontal = Number(this.keys.has('KeyD')) - Number(this.keys.has('KeyA'));
+    const vertical = Number(this.keys.has('KeyW')) - Number(this.keys.has('KeyS'));
+    const fast = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
+    const distance = dt * KEY_LOOK_VIEWPORTS_PER_SECOND * (fast ? 1.8 : 1);
+    this.aim(this.targetYaw + horizontal * (INVERT_X ? -1 : 1) * distance * MOUSE_YAW_RANGE,
+      this.targetPitch + vertical * (INVERT_Y ? -1 : 1) * distance * PITCH_RANGE);
   }
 
   aim(yaw, pitch) {
@@ -861,7 +901,7 @@ class DeskScene {
       {
             "id": 4,
             "name": "Nicole De Guzman",
-            "section": "BSIT-1A",
+            "section": "BSIT 3-1",
             "deskItem": "intermediate-pad",
             "tagline": "My code works, but nobody knows why (especially me)",
             "folderLabel": "secret_thesis_do_not_delete",
@@ -1216,6 +1256,7 @@ class DeskScene {
   }
 
   bindEvents() {
+    this.rig.bindKeyboardLook(() => this.isCameraZoomed);
     window.addEventListener('resize', () => this.onWindowResize());
 
     // Seated Look Around Event Listeners
@@ -1302,7 +1343,7 @@ class DeskScene {
     // Horizontal 180 degrees (-90° to +90°) and vertical look up (-0.65 to +1.15)
     // Consistent drag directions across all axes
     const yawDelta = -(dx / window.innerWidth) * Math.PI;
-    const pitchDelta = -(dy / window.innerHeight) * 1.5;
+    const pitchDelta = -(dy / window.innerHeight) * PITCH_RANGE;
 
     this.rig.aim(this.dragStartAngles.yaw + yawDelta, this.dragStartAngles.pitch + pitchDelta);
   }
@@ -1324,8 +1365,8 @@ class DeskScene {
       }
 
       // Dragging UP looks UP (consistent negative sign with yaw)
-      const yawDelta = -(dx / window.innerWidth) * (Math.PI * 1.15);
-      const pitchDelta = -(dy / window.innerHeight) * 1.5;
+      const yawDelta = -(dx / window.innerWidth) * MOUSE_YAW_RANGE;
+      const pitchDelta = -(dy / window.innerHeight) * PITCH_RANGE;
 
       this.rig.aim(this.dragStartAngles.yaw + yawDelta, this.dragStartAngles.pitch + pitchDelta);
       return;
@@ -1547,7 +1588,10 @@ class DeskScene {
     const member = folderMesh.userData.member;
     this.activeFolder = folderMesh;
     this.isCameraZoomed = true;
-    this.seatedOrientation = this.camera.quaternion.clone();
+    this.preZoomOrientation = this.camera.quaternion.clone();
+    this.rig.targetYaw = this.rig.yaw;
+    this.rig.targetPitch = this.rig.pitch;
+    this.rig.keys.clear();
     this.isDraggingView = false;
     this.hideTooltip();
 
@@ -1616,7 +1660,7 @@ class DeskScene {
       const turn = { progress: 0 };
       gsap.to(turn, {
         progress: 1, duration: 0.8, ease: 'power3.inOut',
-        onUpdate: () => this.camera.quaternion.slerpQuaternions(fromOrientation, this.seatedOrientation, turn.progress)
+        onUpdate: () => this.camera.quaternion.slerpQuaternions(fromOrientation, this.preZoomOrientation, turn.progress)
       });
       gsap.to(this.camera.position, {
         overwrite: true,
@@ -1627,12 +1671,14 @@ class DeskScene {
         ease: 'power3.inOut',
         onComplete: () => {
           this.camera.position.copy(this.rig.seat);
+          this.camera.quaternion.copy(this.preZoomOrientation);
           this.isCameraZoomed = false;
           this.activeFolder = null;
         }
       });
     } else {
       this.camera.position.copy(this.rig.seat);
+      this.camera.quaternion.copy(this.preZoomOrientation);
       this.isCameraZoomed = false;
       this.activeFolder = null;
     }
@@ -1719,7 +1765,10 @@ class DeskScene {
     if (!note) return;
 
     this.isCameraZoomed = true;
-    this.seatedOrientation = this.camera.quaternion.clone();
+    this.preZoomOrientation = this.camera.quaternion.clone();
+    this.rig.targetYaw = this.rig.yaw;
+    this.rig.targetPitch = this.rig.pitch;
+    this.rig.keys.clear();
     this.isDraggingView = false;
     this.hideTooltip();
     this.activeStickyMesh = visualMesh;
@@ -1919,7 +1968,12 @@ class DeskScene {
     this.classroomShafts.forEach((beam, i) => { beam.position.y = 2.42 + 0.055 * Math.sin(seconds * 0.24 + i); });
     this.classroomDust.position.set(0.13 * Math.sin(seconds * 0.31), 0.12 * Math.sin(seconds * 0.21), 0.11 * Math.cos(seconds * 0.25));
 
-    if (!this.isCameraZoomed) this.rig.update();
+    const dt = Math.min(seconds - (this.lastFrameSeconds ?? seconds), 0.05);
+    this.lastFrameSeconds = seconds;
+    if (!this.isCameraZoomed) {
+      this.rig.updateKeyboardLook(dt);
+      this.rig.update();
+    }
 
     if (this.renderer && this.scene && this.camera) {
       this.updateFrontWall(seconds);

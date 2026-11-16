@@ -64,6 +64,7 @@ class ClearBook {
     `;
 
     this.overlayElement = document.getElementById('bookOverlay');
+    this.bookContainer = document.getElementById('bookContainer');
     this.deckElement = document.getElementById('pagesDeck');
     this.dotsContainer = document.getElementById('bookPageDots');
     this.prevBtn = document.getElementById('prevPageBtn');
@@ -147,6 +148,16 @@ class ClearBook {
     for (const item of ['spiral-notebook', 'long-folder', 'theme-book', 'intermediate-pad']) {
       this.overlayElement.classList.toggle('theme-' + item, item === theme);
     }
+    this.spiralTurn?.kill();
+    this.bookContainer.style.removeProperty('--book-offset');
+    this.bookContainer.style.removeProperty('--left-opacity');
+    this.isSpiral = this.overlayElement.classList.contains('theme-spiral');
+    // The standalone book tester loads ClearBook without the classroom's GSAP script.
+    if (this.isSpiral && !window.gsap && !document.querySelector('script[src$="/gsap.min.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'js/lib/gsap.min.js';
+      document.head.appendChild(script);
+    }
     this.currentMember = memberData;
     this.currentPageIndex = 0;
     this.photoClickCount = 0;
@@ -163,6 +174,10 @@ class ClearBook {
 
   close() {
     if (!this.isOpen()) return;
+    this.spiralTurn?.kill();
+    this.bookContainer.style.removeProperty('--book-offset');
+    this.bookContainer.style.removeProperty('--left-opacity');
+    this.isDragging = false;
     this.overlayElement.classList.remove('active');
     if (typeof this.options.onClose === 'function') {
       this.options.onClose();
@@ -186,6 +201,14 @@ class ClearBook {
       type: 'cover',
       title: 'Cover'
     });
+
+    if (this.isSpiral) {
+      pageConfigs.push({ type: 'divider', title: '1st Semester' }, { type: 'profile', title: 'Profile' });
+      const rings = '<i></i>'.repeat(18);
+      this.deckElement.innerHTML = `<div class="spiral-left" aria-hidden="true"></div>
+        <div class="spiral-shadow" aria-hidden="true"></div>
+        <div class="spiral-coil" aria-hidden="true">${rings}</div>`;
+    }
 
     // Pages 1 to 6 from JSON
     const titles = ['About Me', 'Hobbies', 'Skills', 'Projects', 'Fun Facts', 'Contact/Goals'];
@@ -217,11 +240,11 @@ class ClearBook {
       pageEl.dataset.pageIndex = idx;
 
       let frontHTML = '';
-      let backHTML = `
+      let backHTML = this.isSpiral ? '' : `
         <div class="backside-pocket-decor">
-          <div class="backside-sleeve-seal">
+          <span>
             <svg class="uicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          </div>
+          </span>
           <h4>Clear-Book Sleeve #${idx + 1}</h4>
           <p>Official student submission for <em>Advanced Emerging Technologies</em>.</p>
           <div style="font-size:0.75rem; color:#94A3B8; margin-top:8px;">Turn backward or forward with arrows</div>
@@ -287,6 +310,15 @@ class ClearBook {
           }
         }, 0);
 
+      } else if (cfg.type === 'divider') {
+        pageEl.classList.add('spiral-divider');
+        frontHTML = '<div class="semester-sheet"><div class="semester-flap"><h2>1st Semester</h2></div></div><span class="semester-tab">1st Sem</span>';
+      } else if (cfg.type === 'profile') {
+        frontHTML = `<div class="page-inner"><div class="page-body-content">
+          <span class="page-category-tag">Page 1 of 7</span><h3 class="page-title">Profile</h3>
+          <img class="spiral-portrait" src="${member.photo}" alt="">
+          <h4>${member.name}</h4><p>${member.section}</p><p>${member.subject}</p>
+          <p class="page-text">${member.tagline}</p></div></div>`;
       } else if (cfg.type === 'inside') {
         const borderFile = cfg.pageData.border || 'wavy-pink.svg';
         const borderSrc = `assets/borders/${borderFile}`;
@@ -346,7 +378,7 @@ class ClearBook {
             <img class="page-svg-border" src="${borderSrc}" alt="Page Border">
             <div class="page-body-content">
               ${folderSheets ? `<header class="folder-letterhead"><span>${member.name}</span><span>${member.section}</span></header>` : ''}
-              <span class="page-category-tag">Page ${cfg.index} of 6</span>
+              <span class="page-category-tag">Page ${this.isSpiral ? cfg.index + 1 : cfg.index} of ${this.isSpiral ? 7 : 6}</span>
               <h3 class="page-title">${cfg.pageData.title}</h3>
               <div class="page-text">${cfg.pageData.content}</div>
               ${extraHTML}
@@ -415,6 +447,7 @@ class ClearBook {
         `;
       }
 
+      if (this.isSpiral) pageEl.style.setProperty('--tint', Math.random() * 0.045);
       if (looseSheets) backHTML = '<div class="folder-sheet-back"></div>';
 
       // Assemble double-sided page with dynamic bending shadow
@@ -442,7 +475,7 @@ class ClearBook {
 
       const dot = document.createElement('div');
       dot.className = 'page-dot';
-      dot.title = looseSheets ? cfg.pageData.title : (idx === 0) ? 'Cover' : (idx === this.totalPages - 1) ? 'Back Cover' : `Page ${idx}`;
+      dot.title = this.isSpiral ? (cfg.title || cfg.pageData.title) : looseSheets ? cfg.pageData.title : (idx === 0) ? 'Cover' : (idx === this.totalPages - 1) ? 'Back Cover' : `Page ${idx}`;
       dot.addEventListener('click', () => {
         if (!this.isFlipping) this.goToPage(idx);
       });
@@ -452,6 +485,8 @@ class ClearBook {
   }
 
   updatePageStates() {
+    this.bookContainer.classList.toggle('is-cover', this.isSpiral && this.currentPageIndex === 0);
+    this.bookContainer.classList.toggle('is-back', this.isSpiral && this.currentPageIndex === this.totalPages - 1);
     this.pagesElements.forEach((pageEl, idx) => {
       pageEl.classList.remove('flipped', 'active-page', 'next-page');
 
@@ -480,6 +515,7 @@ class ClearBook {
   nextPage() {
     if (this.isFlipping || this.currentPageIndex >= this.totalPages - 1) return;
 
+    if (this.isSpiral) return this.turnSpiral(this.currentPageIndex + 1);
     this.isFlipping = true;
     const flippingPage = this.pagesElements[this.currentPageIndex];
     flippingPage.classList.add('turning');
@@ -501,6 +537,7 @@ class ClearBook {
   prevPage() {
     if (this.isFlipping || this.currentPageIndex <= 0) return;
 
+    if (this.isSpiral) return this.turnSpiral(this.currentPageIndex - 1);
     this.isFlipping = true;
     this.currentPageIndex--;
     const returningPage = this.pagesElements[this.currentPageIndex];
@@ -521,11 +558,55 @@ class ClearBook {
 
   goToPage(idx) {
     if (this.isFlipping || idx === this.currentPageIndex || idx < 0 || idx >= this.totalPages) return;
+    if (this.isSpiral) return this.turnSpiral(idx);
     this.currentPageIndex = idx;
     this.updatePageStates();
     if (window.PortfolioHumor && typeof window.PortfolioHumor.playSound === 'function') {
       window.PortfolioHumor.playSound('pageFlipSlow');
     }
+  }
+
+  turnSpiral(destination) {
+    const wasClosed = this.currentPageIndex === 0 || this.currentPageIndex === this.totalPages - 1;
+    const willClose = destination === 0 || destination === this.totalPages - 1;
+    const forward = destination > this.currentPageIndex;
+    const leaf = this.pagesElements[forward ? this.currentPageIndex : destination];
+    const shadow = this.deckElement.querySelector('.spiral-shadow');
+    this.currentPageIndex = destination;
+    this.isFlipping = true;
+    this.updatePageStates();
+    const finish = () => {
+      leaf.classList.remove('spiral-turning');
+      leaf.style.removeProperty('transform');
+      this.bookContainer.style.removeProperty('--book-offset');
+      this.bookContainer.style.removeProperty('--left-opacity');
+      shadow.style.removeProperty('opacity');
+      shadow.style.removeProperty('transform');
+      this.isFlipping = false;
+      this.spiralTurn = null;
+      this.updatePageStates();
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !window.gsap) {
+      finish();
+      return;
+    }
+    window.PortfolioHumor?.playSound('spiralPaper');
+    leaf.classList.add('spiral-turning');
+    leaf.style.zIndex = 90;
+    const start = forward ? 0 : -180;
+    this.spiralTurn = gsap.timeline({ onComplete: finish });
+    if (wasClosed !== willClose) {
+      this.spiralTurn.fromTo(this.bookContainer,
+        { '--book-offset': wasClosed ? '-25%' : '0%' },
+        { '--book-offset': willClose ? '-25%' : '0%', duration: 0.9, ease: 'power2.inOut' }, 0)
+        .fromTo(this.bookContainer, { '--left-opacity': wasClosed ? 0 : 1 },
+          { '--left-opacity': willClose ? 0 : 1, duration: 0.27, ease: 'power2.inOut' }, willClose ? 0.63 : 0);
+    }
+    this.spiralTurn.fromTo(leaf, { rotationY: start, z: 0, skewY: 0 },
+      { rotationY: -180 - start, duration: 0.9, ease: 'power2.inOut' }, 0)
+      .to(leaf, { z: 12, skewY: forward ? -1.4 : 1.4, duration: 0.45, repeat: 1, yoyo: true, ease: 'sine.inOut' }, 0)
+      .fromTo(shadow, { xPercent: forward ? 100 : -100 }, { xPercent: forward ? -100 : 100, duration: 0.9, ease: 'power2.inOut' }, 0)
+      .fromTo(shadow, { opacity: 0 }, { opacity: 0.32, duration: 0.45, repeat: 1, yoyo: true }, 0);
   }
 
   adjustColorBrightness(hex, percent) {

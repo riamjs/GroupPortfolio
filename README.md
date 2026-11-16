@@ -194,7 +194,7 @@ Agree on this shape as a team before coding. It connects the backend and the fro
   {
     "id": 1,
     "name": "Joshua Deliva",
-    "section": "BSIT-1A",
+    "section": "BSIT 3-1",
     "subject": "Advanced Emerging Technologies",
     "tagline": "Emerging technologies, emerging deadlines",
     "folderLabel": "FINAL_v7_REALLYFINAL_dontopen",
