@@ -4,8 +4,11 @@
  * back cover, realistic slow & smooth double-sided page flips, and easy easter eggs.
  */
 
+const CLEARBOOK_BUILD = 'spiral-cover-v2';
+
 class ClearBook {
   constructor(options = {}) {
+    console.info('ClearBook', CLEARBOOK_BUILD);
     this.options = Object.assign({
       containerId: 'book-overlay-container',
       theme: null,
@@ -141,6 +144,7 @@ class ClearBook {
   }
 
   open(memberData, { theme = this.options.theme || memberData.deskItem } = {}) {
+    this.bookContainer.dataset.build = CLEARBOOK_BUILD;
     this.overlayElement.classList.toggle('theme-pad', theme === 'pad' || theme === 'intermediate-pad');
     this.overlayElement.classList.toggle('theme-folder', theme === 'folder' || theme === 'long-folder');
     this.overlayElement.classList.toggle('theme-themebook', theme === 'themebook' || theme === 'theme-book');
