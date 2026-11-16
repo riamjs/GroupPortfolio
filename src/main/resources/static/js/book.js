@@ -243,8 +243,12 @@ class ClearBook {
       pageEl.className = 'book-page';
       pageEl.dataset.pageIndex = idx;
 
+      const seed = this.isSpiral ? Handwriting.hash(member.id + ':' + idx) : 0;
+      const write = text => Handwriting.handwrite(text, { seed });
       let frontHTML = '';
-      let backHTML = this.isSpiral ? '' : `
+      let backHTML = this.isSpiral ? (Sketches.SKETCH_LAYOUT[idx + 1] || []).map(({ name, x, y, size, rot }) =>
+        `<div class="leaf-doodle" aria-hidden="true" style="left:${x}%;top:${y}%;width:${size}%;--tilt:${rot}deg">${Sketches.get(name)}</div>`
+      ).join('') : `
         <div class="backside-pocket-decor">
           <span>
             <svg class="uicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -318,11 +322,12 @@ class ClearBook {
         pageEl.classList.add('spiral-divider');
         frontHTML = '<div class="semester-sheet"><div class="semester-flap"><h2>1st Semester</h2></div></div><span class="semester-tab">1st Sem</span>';
       } else if (cfg.type === 'profile') {
-        frontHTML = `<div class="page-inner"><div class="page-body-content">
-          <span class="page-category-tag">Page 1 of 7</span><h3 class="page-title">Profile</h3>
-          <img class="spiral-portrait" src="${member.photo}" alt="">
-          <h4>${member.name}</h4><p>${member.section}</p><p>${member.subject}</p>
-          <p class="page-text">${member.tagline}</p></div></div>`;
+        frontHTML = `<div class="page-inner"><div class="page-body-content spiral-profile">
+          <span class="page-category-tag">Page 1 of 7</span><h3 class="page-title">${write('Profile')}</h3>
+          <figure class="snapshot"><img src="${member.photo}" alt="Portrait of ${member.name}"><figcaption>${member.subject}</figcaption></figure>
+          <h4 class="signed-name">${write(member.name)}<svg aria-hidden="true" viewBox="0 0 150 10" preserveAspectRatio="none"><path d="M2 7Q28 3 50 5T94 4T148 3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h4>
+          <span class="section-callout">${write(member.section)}</span>
+          <p class="page-text">${write(member.tagline)}</p></div></div>`;
       } else if (cfg.type === 'inside') {
         const borderFile = cfg.pageData.border || 'wavy-pink.svg';
         const borderSrc = `assets/borders/${borderFile}`;
@@ -383,8 +388,8 @@ class ClearBook {
             <div class="page-body-content">
               ${folderSheets ? `<header class="folder-letterhead"><span>${member.name}</span><span>${member.section}</span></header>` : ''}
               <span class="page-category-tag">Page ${this.isSpiral ? cfg.index + 1 : cfg.index} of ${this.isSpiral ? 7 : 6}</span>
-              <h3 class="page-title">${cfg.pageData.title}</h3>
-              <div class="page-text">${cfg.pageData.content}</div>
+              <h3 class="page-title">${this.isSpiral ? write(cfg.pageData.title) : cfg.pageData.title}</h3>
+              <div class="page-text">${this.isSpiral ? cfg.pageData.content.split(/\n\s*\n/).map(paragraph => `<p>${write(paragraph)}</p>`).join('') : cfg.pageData.content}</div>
               ${extraHTML}
               ${folderSheets && cfg.index === 6 ? '<span class="folder-stamp">APPROVED</span>' : ''}
             </div>
@@ -451,7 +456,16 @@ class ClearBook {
         `;
       }
 
-      if (this.isSpiral) pageEl.style.setProperty('--tint', Math.random() * 0.045);
+      if (this.isSpiral) {
+        pageEl.style.setProperty('--tint', (seed % 45) / 1000);
+        pageEl.style.setProperty('--pen', ['#252422', '#244787', '#a64812'][(idx + 1) % 3]);
+        pageEl.style.setProperty('--ink-opacity', 0.88 + (seed % 13) / 100);
+        if (cfg.type === 'profile' || cfg.type === 'inside') {
+          const mark = cfg.type === 'profile' ? 'stars' : ['stars', 'hearts', 'music'][idx % 3];
+          frontHTML += `<div class="margin-doodle" aria-hidden="true">${Sketches.get(mark)}</div>`;
+          if (cfg.type === 'profile') frontHTML += '<svg class="profile-arrow" aria-hidden="true" viewBox="0 0 40 48"><path d="M32 3Q44 28 8 37m8-9-9 10 13 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+        }
+      }
       if (looseSheets) backHTML = '<div class="folder-sheet-back"></div>';
 
       // Assemble double-sided page with dynamic bending shadow
@@ -492,6 +506,7 @@ class ClearBook {
     this.bookContainer.classList.toggle('is-cover', this.isSpiral && this.currentPageIndex === 0);
     this.bookContainer.classList.toggle('is-back', this.isSpiral && this.currentPageIndex === this.totalPages - 1);
     this.pagesElements.forEach((pageEl, idx) => {
+      if (this.isSpiral) pageEl.classList.toggle('visible-verso', idx === this.currentPageIndex - 1);
       pageEl.classList.remove('flipped', 'active-page', 'next-page');
 
       if (idx < this.currentPageIndex) {
