@@ -27,6 +27,7 @@ class ClearBook {
     this.dragStartX = 0;
     this.isFlipping = false; // Prevents animation overlap during slow turn
 
+    this.pageCache = new WeakMap();
     this.initDOM();
     this.bindGlobalKeys();
   }
@@ -46,6 +47,7 @@ class ClearBook {
             <span class="member-color-indicator" id="memberColorDot"></span>
             <span id="memberPillName">Member Portfolio</span>
           </div>
+          <button type="button" hidden class="book-nav-btn book-music-btn">Mute</button>
           <button class="book-close-btn" id="bookCloseBtn" title="Close Portfolio (Esc)" aria-label="Close">✕</button>
         </div>
 
@@ -62,6 +64,7 @@ class ClearBook {
           <button class="book-nav-btn" id="nextPageBtn" title="Next Page (→)">Next Page ›</button>
         </div>
 
+        <small hidden class="music-credit"></small>
         <div class="book-key-hints">Tip: Use [←] [→] arrow keys to flip smoothly • [Esc] to return to desk</div>
       </div>
     `;
@@ -76,6 +79,7 @@ class ClearBook {
     this.memberPillName = document.getElementById('memberPillName');
     this.memberColorDot = document.getElementById('memberColorDot');
 
+    this.music = new ThemeSong(container.querySelector('.book-music-btn'), container.querySelector('.music-credit'));
     this.closeBtn.addEventListener('click', () => this.close());
     this.prevBtn.addEventListener('click', () => this.prevPage());
     this.nextBtn.addEventListener('click', () => this.nextPage());
@@ -144,6 +148,11 @@ class ClearBook {
   }
 
   open(memberData, { theme = this.options.theme || memberData.deskItem } = {}) {
+    if (memberData.themeSong && !navigator.userActivation?.hasBeenActive) {
+      this.music.stop(false);
+      this.overlayElement.addEventListener('click', this.activatePreviewMusic = () => this.music.start(memberData.themeSong), { once: true, capture: true });
+    } else if (!this.musicPrepared) this.music.start(memberData.themeSong);
+    this.musicPrepared = false;
     this.bookContainer.dataset.build = CLEARBOOK_BUILD;
     this.overlayElement.classList.toggle('theme-pad', theme === 'pad' || theme === 'intermediate-pad');
     this.overlayElement.classList.toggle('theme-folder', theme === 'folder' || theme === 'long-folder');
@@ -171,9 +180,19 @@ class ClearBook {
     this.memberPillName.textContent = memberData.name + " (" + memberData.section + ")";
     this.memberColorDot.style.backgroundColor = memberData.coverColor || '#FF7A00';
 
-    this.renderPages();
+    const pages = this.preparePages(memberData, theme);
+    this.deckElement.replaceChildren(...pages.deck);
+    this.dotsContainer.replaceChildren(...pages.dotsElements);
+    this.pagesElements = pages.pagesElements;
+    this.dotsElements = pages.dotsElements;
+    this.totalPages = pages.totalPages;
     this.overlayElement.classList.add('active');
     this.updatePageStates();
+  }
+
+  prepareMusic(member) {
+    this.musicPrepared = true;
+    this.music.start(member.themeSong);
   }
 
   close() {
@@ -182,23 +201,39 @@ class ClearBook {
     this.bookContainer.style.removeProperty('--book-offset');
     this.bookContainer.style.removeProperty('--left-opacity');
     this.isDragging = false;
+    this.overlayElement.removeEventListener('click', this.activatePreviewMusic, true);
+    clearTimeout(this.flipTimer);
+    for (const leaf of this.pagesElements) {
+      leaf.classList.remove('turning', 'spiral-turning');
+      leaf.style.removeProperty('transform');
+    }
+    this.deckElement.querySelector('.spiral-shadow')?.removeAttribute('style');
+    this.music.stop();
     this.overlayElement.classList.remove('active');
     if (typeof this.options.onClose === 'function') {
       this.options.onClose();
     }
   }
 
-  renderPages() {
-    const member = this.currentMember;
+  preparePages(member, theme = member.deskItem) {
+    let entry = this.pageCache.get(member);
+    if (!entry || entry.theme !== theme) {
+      entry = { theme, pages: this.renderPages(member, theme) };
+      this.pageCache.set(member, entry);
+    }
+    return entry.pages;
+  }
+
+  renderPages(member, theme) {
+    const isSpiral = theme === 'spiral' || theme === 'spiral-notebook';
+    const deckElement = document.createElement('div');
+    const dotsContainer = document.createElement('div');
+    const pagesElements = [], dotsElements = [];
     const coverColor = member.coverColor || '#FF7A00';
-    this.deckElement.innerHTML = '';
-    this.dotsContainer.innerHTML = '';
-    this.pagesElements = [];
-    this.dotsElements = [];
 
     const pageConfigs = [];
-    const folderSheets = this.overlayElement.classList.contains('theme-folder');
-    const looseSheets = folderSheets || this.overlayElement.classList.contains('theme-pad');
+    const folderSheets = (theme === 'folder' || theme === 'long-folder');
+    const looseSheets = folderSheets || (theme === 'pad' || theme === 'intermediate-pad');
 
     // Page 0: Cover
     if (!looseSheets) pageConfigs.push({
@@ -206,10 +241,10 @@ class ClearBook {
       title: 'Cover'
     });
 
-    if (this.isSpiral) {
+    if (isSpiral) {
       pageConfigs.push({ type: 'divider', title: '1st Semester' }, { type: 'profile', title: 'Profile' });
       const rings = '<i></i>'.repeat(18);
-      this.deckElement.innerHTML = `<div class="spiral-left" aria-hidden="true"></div>
+      deckElement.innerHTML = `<div class="spiral-left" aria-hidden="true"></div>
         <div class="spiral-shadow" aria-hidden="true"></div>
         <div class="spiral-coil" aria-hidden="true">${rings}</div>`;
     }
@@ -236,17 +271,17 @@ class ClearBook {
       title: 'Back Cover'
     });
 
-    this.totalPages = pageConfigs.length;
+    const totalPages = pageConfigs.length;
 
     pageConfigs.forEach((cfg, idx) => {
       const pageEl = document.createElement('div');
       pageEl.className = 'book-page';
       pageEl.dataset.pageIndex = idx;
 
-      const seed = this.isSpiral ? Handwriting.hash(member.id + ':' + idx) : 0;
+      const seed = isSpiral ? Handwriting.hash(member.id + ':' + idx) : 0;
       const write = text => Handwriting.handwrite(text, { seed });
       let frontHTML = '';
-      let backHTML = this.isSpiral ? (Sketches.SKETCH_LAYOUT[idx + 1] || []).map(({ name, x, y, size, rot }) =>
+      let backHTML = isSpiral ? (Sketches.SKETCH_LAYOUT[idx + 1] || []).map(({ name, x, y, size, rot }) =>
         `<div class="leaf-doodle" aria-hidden="true" style="left:${x}%;top:${y}%;width:${size}%;--tilt:${rot}deg">${Sketches.get(name)}</div>`
       ).join('') : `
         <div class="backside-pocket-decor">
@@ -281,7 +316,7 @@ class ClearBook {
           </div>
         `;
 
-        if (this.overlayElement.classList.contains('theme-spiral')) {
+        if (isSpiral) {
           frontHTML = `<div class="riam-collage-cover">
             <div class="riam-collage-tag"><img src="${member.photo}" alt="">
             <span><strong>PORTFOLIO</strong><b>${member.name}</b><small>★ SECTION &nbsp; ${member.section}</small></span></div>
@@ -333,11 +368,11 @@ class ClearBook {
         const borderSrc = `assets/borders/${borderFile}`;
 
         let extraHTML = '';
-        if (cfg.skills?.length && this.overlayElement.classList.contains('theme-spiral')) {
+        if (cfg.skills?.length && isSpiral) {
           extraHTML = '<ul class="spiral-skills">' + cfg.skills.map(skill =>
             `<li><strong>${skill.name}</strong> — ${skill.funnyLabel}</li>`
           ).join('') + '</ul>';
-        } else if (cfg.skills?.length && this.overlayElement.classList.contains('theme-themebook')) {
+        } else if (cfg.skills?.length && (theme === 'themebook' || theme === 'theme-book')) {
           extraHTML = '<ol class="themebook-skills">' + cfg.skills.map(skill =>
             `<li>${skill.name}</li>`
           ).join('') + '</ol>';
@@ -387,9 +422,9 @@ class ClearBook {
             <img class="page-svg-border" src="${borderSrc}" alt="Page Border">
             <div class="page-body-content">
               ${folderSheets ? `<header class="folder-letterhead"><span>${member.name}</span><span>${member.section}</span></header>` : ''}
-              <span class="page-category-tag">Page ${this.isSpiral ? cfg.index + 1 : cfg.index} of ${this.isSpiral ? 7 : 6}</span>
-              <h3 class="page-title">${this.isSpiral ? write(cfg.pageData.title) : cfg.pageData.title}</h3>
-              <div class="page-text">${this.isSpiral ? cfg.pageData.content.split(/\n\s*\n/).map(paragraph => `<p>${write(paragraph)}</p>`).join('') : cfg.pageData.content}</div>
+              <span class="page-category-tag">Page ${isSpiral ? cfg.index + 1 : cfg.index} of ${isSpiral ? 7 : 6}</span>
+              <h3 class="page-title">${isSpiral ? write(cfg.pageData.title) : cfg.pageData.title}</h3>
+              <div class="page-text">${isSpiral ? cfg.pageData.content.split(/\n\s*\n/).map(paragraph => `<p>${write(paragraph)}</p>`).join('') : cfg.pageData.content}</div>
               ${extraHTML}
               ${folderSheets && cfg.index === 6 ? '<span class="folder-stamp">APPROVED</span>' : ''}
             </div>
@@ -456,7 +491,7 @@ class ClearBook {
         `;
       }
 
-      if (this.isSpiral) {
+      if (isSpiral) {
         pageEl.style.setProperty('--tint', (seed % 45) / 1000);
         pageEl.style.setProperty('--pen', ['#252422', '#244787', '#a64812'][(idx + 1) % 3]);
         pageEl.style.setProperty('--ink-opacity', 0.88 + (seed % 13) / 100);
@@ -488,18 +523,19 @@ class ClearBook {
         }
       });
 
-      this.deckElement.appendChild(pageEl);
-      this.pagesElements.push(pageEl);
+      deckElement.appendChild(pageEl);
+      pagesElements.push(pageEl);
 
       const dot = document.createElement('div');
       dot.className = 'page-dot';
-      dot.title = this.isSpiral ? (cfg.title || cfg.pageData.title) : looseSheets ? cfg.pageData.title : (idx === 0) ? 'Cover' : (idx === this.totalPages - 1) ? 'Back Cover' : `Page ${idx}`;
+      dot.title = isSpiral ? (cfg.title || cfg.pageData.title) : looseSheets ? cfg.pageData.title : (idx === 0) ? 'Cover' : (idx === totalPages - 1) ? 'Back Cover' : `Page ${idx}`;
       dot.addEventListener('click', () => {
         if (!this.isFlipping) this.goToPage(idx);
       });
-      this.dotsContainer.appendChild(dot);
-      this.dotsElements.push(dot);
+      dotsContainer.appendChild(dot);
+      dotsElements.push(dot);
     });
+    return { pagesElements, dotsElements, deck: Array.from(deckElement.children), totalPages };
   }
 
   updatePageStates() {
@@ -546,7 +582,7 @@ class ClearBook {
     this.currentPageIndex++;
     this.updatePageStates();
 
-    setTimeout(() => {
+    this.flipTimer = setTimeout(() => {
       flippingPage.classList.remove('turning');
       this.isFlipping = false;
       this.updatePageStates();
@@ -568,7 +604,7 @@ class ClearBook {
 
     this.updatePageStates();
 
-    setTimeout(() => {
+    this.flipTimer = setTimeout(() => {
       returningPage.classList.remove('turning');
       this.isFlipping = false;
       this.updatePageStates();

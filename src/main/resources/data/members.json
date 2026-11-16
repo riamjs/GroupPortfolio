@@ -1,6 +1,7 @@
 [
   {
     "id": 1,
+    "themeSong": { "provider": "file", "src": "assets/audio/notebook-theme.mp3", "title": "Notebook theme", "credit": "" },
     "name": "Riam Jaye Santiago",
     "section": "BSIT 3-1",
     "subject": "Advanced Emerging Technologies",
