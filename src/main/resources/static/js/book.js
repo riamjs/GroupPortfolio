@@ -8,6 +8,7 @@ class ClearBook {
   constructor(options = {}) {
     this.options = Object.assign({
       containerId: 'book-overlay-container',
+      theme: null,
       onClose: null,
       onOpenGuestbook: null
     }, options);
@@ -138,7 +139,14 @@ class ClearBook {
     return this.overlayElement && this.overlayElement.classList.contains('active');
   }
 
-  open(memberData) {
+  open(memberData, { theme = this.options.theme || memberData.deskItem } = {}) {
+    this.overlayElement.classList.toggle('theme-pad', theme === 'pad' || theme === 'intermediate-pad');
+    this.overlayElement.classList.toggle('theme-folder', theme === 'folder' || theme === 'long-folder');
+    this.overlayElement.classList.toggle('theme-themebook', theme === 'themebook' || theme === 'theme-book');
+    this.overlayElement.classList.toggle('theme-spiral', theme === 'spiral' || theme === 'spiral-notebook');
+    for (const item of ['spiral-notebook', 'long-folder', 'theme-book', 'intermediate-pad']) {
+      this.overlayElement.classList.toggle('theme-' + item, item === theme);
+    }
     this.currentMember = memberData;
     this.currentPageIndex = 0;
     this.photoClickCount = 0;
@@ -170,9 +178,11 @@ class ClearBook {
     this.dotsElements = [];
 
     const pageConfigs = [];
+    const folderSheets = this.overlayElement.classList.contains('theme-folder');
+    const looseSheets = folderSheets || this.overlayElement.classList.contains('theme-pad');
 
     // Page 0: Cover
-    pageConfigs.push({
+    if (!looseSheets) pageConfigs.push({
       type: 'cover',
       title: 'Cover'
     });
@@ -194,7 +204,7 @@ class ClearBook {
     }
 
     // Page 7: Back Cover
-    pageConfigs.push({
+    if (!looseSheets) pageConfigs.push({
       type: 'back-cover',
       title: 'Back Cover'
     });
@@ -240,6 +250,13 @@ class ClearBook {
           </div>
         `;
 
+        if (this.overlayElement.classList.contains('theme-spiral')) {
+          frontHTML = `<div class="riam-collage-cover">
+            <div class="riam-collage-tag"><img src="${member.photo}" alt="">
+            <span><strong>PORTFOLIO</strong><b>${member.name}</b><small>★ SECTION &nbsp; ${member.section}</small></span></div>
+          </div>`;
+        }
+
         // Easy Easter Egg: Only 2 clicks (double click) to spin!
         setTimeout(() => {
           const photoWrap = pageEl.querySelector('#coverPhotoWrap');
@@ -275,7 +292,15 @@ class ClearBook {
         const borderSrc = `assets/borders/${borderFile}`;
 
         let extraHTML = '';
-        if (cfg.skills && cfg.skills.length > 0) {
+        if (cfg.skills?.length && this.overlayElement.classList.contains('theme-spiral')) {
+          extraHTML = '<ul class="spiral-skills">' + cfg.skills.map(skill =>
+            `<li><strong>${skill.name}</strong> — ${skill.funnyLabel}</li>`
+          ).join('') + '</ul>';
+        } else if (cfg.skills?.length && this.overlayElement.classList.contains('theme-themebook')) {
+          extraHTML = '<ol class="themebook-skills">' + cfg.skills.map(skill =>
+            `<li>${skill.name}</li>`
+          ).join('') + '</ol>';
+        } else if (cfg.skills && cfg.skills.length > 0) {
           extraHTML += `<div class="skills-container">`;
           cfg.skills.forEach(s => {
             extraHTML += `
@@ -320,10 +345,12 @@ class ClearBook {
           <div class="page-inner">
             <img class="page-svg-border" src="${borderSrc}" alt="Page Border">
             <div class="page-body-content">
+              ${folderSheets ? `<header class="folder-letterhead"><span>${member.name}</span><span>${member.section}</span></header>` : ''}
               <span class="page-category-tag">Page ${cfg.index} of 6</span>
               <h3 class="page-title">${cfg.pageData.title}</h3>
               <div class="page-text">${cfg.pageData.content}</div>
               ${extraHTML}
+              ${folderSheets && cfg.index === 6 ? '<span class="folder-stamp">APPROVED</span>' : ''}
             </div>
           </div>
         `;
@@ -388,6 +415,8 @@ class ClearBook {
         `;
       }
 
+      if (looseSheets) backHTML = '<div class="folder-sheet-back"></div>';
+
       // Assemble double-sided page with dynamic bending shadow
       pageEl.innerHTML = `
         <div class="page-face page-front">${frontHTML}</div>
@@ -413,7 +442,7 @@ class ClearBook {
 
       const dot = document.createElement('div');
       dot.className = 'page-dot';
-      dot.title = (idx === 0) ? 'Cover' : (idx === this.totalPages - 1) ? 'Back Cover' : `Page ${idx}`;
+      dot.title = looseSheets ? cfg.pageData.title : (idx === 0) ? 'Cover' : (idx === this.totalPages - 1) ? 'Back Cover' : `Page ${idx}`;
       dot.addEventListener('click', () => {
         if (!this.isFlipping) this.goToPage(idx);
       });

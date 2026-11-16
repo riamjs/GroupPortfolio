@@ -3,11 +3,47 @@
  * Connects frontend to Spring Boot backend endpoints for members, notes, and visit counter.
  */
 
+const classroomDefaults = {
+  "whiteboardLines": [
+    "AET Group Portfolio",
+    "07:30   Filipino",
+    "08:30   Mathematics",
+    "10:00   Advanced Emerging Technologies",
+    "Attendance: present, even if the Wi-Fi is absent.",
+    "Homework: save before you celebrate."
+  ],
+  "tvSlides": [
+    "AET Group Portfolio",
+    "Advanced Emerging Technologies",
+    "Click the laptop"
+  ],
+  "teacherLines": [
+    "Okay class, settle down.",
+    "Sinong hindi pa nakakapag-submit?",
+    "Open your notebooks."
+  ]
+};
+
 const API = {
+  async getClassroom() {
+    try {
+      const response = await fetch(this.baseUrl + '/api/site/classroom');
+      if (!response.ok) throw new Error('Classroom unavailable');
+      const data = await response.json();
+      for (const key of Object.keys(classroomDefaults)) {
+        if (!Array.isArray(data[key]) || !data[key].length ||
+            !data[key].every(line => typeof line === 'string' && line.trim())) return classroomDefaults;
+      }
+      return data;
+    } catch {
+      return classroomDefaults;
+    }
+  },
+
   baseUrl: '',
 
   /**
-   * Fetches all 5 members
+   * Fetches all 4 members
    * @returns {Promise<Array>}
    */
   async getMembers() {

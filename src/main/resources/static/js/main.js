@@ -5,6 +5,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const classroomRequest = API.getClassroom();
   let members = [];
   let notes = [];
   let currentVisitorCount = 0;
@@ -74,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 3. Initialize 3D Desk Scene
   deskScene = new DeskScene({
+    classroom: await classroomRequest,
     containerId: 'scene-container',
     members: members,
     notes: notes,
