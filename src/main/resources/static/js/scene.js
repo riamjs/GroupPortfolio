@@ -146,6 +146,10 @@ class DeskScene {
     this.isCameraZoomed = false;
     this.isSpilled = false;
     this.isFloating = false;
+    this.antiGravityHomes=null;
+    this.antiGravityTweens=[];
+    this.antiGravityResetTweens=[];
+    this.antiGravityLanding=false;
 
     this.isDraggingView = false;
     this.dragStartPos = { x: 0, y: 0 };
@@ -210,6 +214,7 @@ class DeskScene {
     this.buildProps();
     this.buildStickyNotes();
     this.buildExtras(this.roomGroup, -2.84);
+    this.buildStudentBags(this.roomGroup,-2.84);
     Theme.applyScene(this);
     this.moveTableContents(roomObjects);
     const ahead=SEAT_SLOTS.filter(slot=>slot.col===VIEWER_SLOT.col && slot.row<VIEWER_SLOT.row).sort((a,b)=>b.row-a.row)[0];
@@ -753,8 +758,64 @@ class DeskScene {
     }
   }
 
+  buildStudentBags(room, floor) {
+    const pool=[
+      {type:'navy-backpack',colors:['#22345D','#2D426F','#1D2D50'],parts:[['box',0,.43,0,.64,.82,.32],['box',0,.29,.19,.47,.30,.09],['ring',0,.92,0,.34,.25,.35]]},
+      {type:'teal-backpack',colors:['#2E9C8F','#288A81','#3BA99A'],parts:[['sphere',0,.44,0,.35,.44,.19],['box',0,.30,.20,.48,.30,.08],['ring',0,.92,0,.34,.26,.35]]},
+      {type:'red-sling',colors:['#D8402F','#BE382A','#E24B37'],parts:[['box',0,.29,0,.72,.50,.28],['box',0,.50,.03,.74,.16,.32],['ring',0,.78,-.04,.62,.95,.30]]},
+      {type:'canvas-tote',colors:['#E8D8B5','#EFE1C3','#DCCAA3'],parts:[['box',0,.36,0,.72,.68,.30],['ring',0,.82,-.11,.42,.70,.24],['ring',0,.82,.11,.42,.70,.24]]},
+      {type:'yellow-drawstring',colors:['#F2B632','#E4AA2B','#F5C344'],parts:[['sphere',0,.42,0,.33,.40,.16],['box',0,.78,0,.44,.12,.25],['box',-.22,.53,.18,.035,.55,.035],['box',.22,.53,.18,.035,.55,.035]]},
+      {type:'orange-lunch',colors:['#E8892B','#D97B26','#F09637'],parts:[['box',0,.25,0,.62,.46,.34],['box',0,.52,0,.66,.10,.38],['ring',0,.67,0,.36,.34,.35]]},
+      {type:'white-plastic',colors:['#FAFAF5','#F0F0E7','#FFFFFF'],parts:[['crumpled',0,.34,0,.62,.64,.30],['box',0,.69,0,.40,.15,.28,0,0,.14],['ring',-.15,.90,0,.20,.40,.30],['ring',.15,.90,0,.20,.40,.30]]},
+      {type:'olive-shoulder',colors:['#687544','#5E6D3C','#75814C'],parts:[['box',0,.29,0,.76,.54,.30],['box',0,.50,.04,.78,.20,.34],['ring',0,.80,-.04,.68,1.02,.30]]}
+    ];
+    let seed=13771;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+    const crumpled=this.studentGeometry.box.clone(),corners=new Map(),vertices=crumpled.attributes.position;
+    for(let i=0;i<vertices.count;i++) {
+      const key=[vertices.getX(i),vertices.getY(i),vertices.getZ(i)].join(':');
+      if(!corners.has(key))corners.set(key,[(random()-.5)*.16,(random()-.5)*.16,(random()-.5)*.16]);
+      const d=corners.get(key);vertices.setXYZ(i,vertices.getX(i)+d[0],vertices.getY(i)+d[1],vertices.getZ(i)+d[2]);
+    }
+    crumpled.computeVertexNormals();
+    const ring=new THREE.TorusGeometry(.5,.07,5,12),primitives={...this.studentGeometry,ring,crumpled},pose=new THREE.Object3D();
+    this.bagGeometries=new Map();
+    for(const bag of pool) {
+      const positions=[],normals=[],uv=[];
+      for(const [shape,x,y,z,w,h,d,rx=0,ry=0,rz=0] of bag.parts) {
+        const base=primitives[shape],part=base.index?base.toNonIndexed():base.clone();
+        pose.position.set(x,y,z);pose.scale.set(w,h,d);pose.rotation.set(rx,ry,rz);pose.updateMatrix();part.applyMatrix4(pose.matrix);
+        positions.push(...part.attributes.position.array);normals.push(...part.attributes.normal.array);uv.push(...part.attributes.uv.array);part.dispose();
+      }
+      const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+      geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+      geometry.computeBoundingBox();geometry.computeBoundingSphere();this.bagGeometries.set(bag.type,geometry);
+    }
+    ring.dispose();crumpled.dispose();
+    const occupants=[...this.students.map(s=>({id:s.student.id,slot:SEAT_SLOTS.find(p=>p.row===s.student.row && p.col===s.student.col)})),
+      ...this.extras.map(s=>({id:'extra-'+s.slot.row+'-'+s.slot.col,slot:s.slot}))].sort((a,b)=>a.slot.row-b.slot.row || a.slot.col-b.slot.col);
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    const counts=new Map(),bounds=new THREE.Box3();this.studentBags=[];
+    for(const [index,occupant] of occupants.entries()) {
+      const {slot}=occupant,neighbors=this.studentBags.filter(b=>Math.abs(b.slot.row-slot.row)+Math.abs(b.slot.col-slot.col)===1);
+      let type=pool[index%pool.length];
+      if(neighbors.some(b=>b.type===type.type))type=pool.find(candidate=>!neighbors.some(b=>b.type===candidate.type));
+      const variant=counts.get(type.type)||0;counts.set(type.type,variant+1);
+      const color=type.colors[variant%type.colors.length],mesh=new THREE.Mesh(this.bagGeometries.get(type.type),this.studentPaint(color));
+      const aisleSide=slot.x<0?1:-1;
+      const space=side=>Math.min(11-side*slot.x, ...SEAT_SLOTS.filter(p=>p.row===slot.row && side*(p.x-slot.x)>0).map(p=>Math.abs(p.x-slot.x)-1.7))+(side===aisleSide ? .2 : 0);
+      const side=space(aisleSide)>=space(-aisleSide)?aisleSide:-aisleSide;
+      mesh.rotation.set((random()-.5)*.08,slot.yaw+(random()-.5)*.24,side*(.035+random()*.065));
+      mesh.position.set(slot.x+side*1.55,0,slot.z+.10+(random()-.5)*.12);mesh.updateMatrixWorld(true);
+      bounds.setFromObject(mesh);mesh.position.y=floor-bounds.min.y+.015;
+      mesh.name='student-bag-'+occupant.id;mesh.userData={type:'student-bag',owner:occupant.id,bagType:type.type,variant,slot};
+      mesh.castShadow=false;mesh.receiveShadow=true;mesh.raycast=()=>{};room.add(mesh);Theme.addOutline(mesh);
+      this.studentBags.push({mesh,type:type.type,variant,color,slot,owner:occupant.id,side});
+    }
+  }
+
   buildAbsentSeat(room, floor) {
-    this.absentName=this.classroom.classroom?.absentName || 'Mara Dimaculangan';
+    // Display-name override requested without changing Spring or the classroom API.
+    this.absentName='Sara Duterte';
     const map=this.roomTexture(512,256,ctx=>{
       // textContent supplies both accessible canvas fallback text and the painted label; no HTML.
       ctx.canvas.textContent=this.absentName+'\nAbsent';
@@ -2512,82 +2573,98 @@ class DeskScene {
     }
   }
 
+  getHomePose(obj) {
+    return this.antiGravityHomes?.get(obj);
+  }
+
+  snapshotAntiGravityHomes() {
+    this.antiGravityHomes=new Map();
+    this.antiGravityMaterials=new Map();
+    this.deskGroup.traverse(obj=>{
+      this.antiGravityHomes.set(obj,{position:obj.position.clone(),rotation:obj.rotation.clone(),scale:obj.scale.clone(),
+        castShadow:obj.castShadow,receiveShadow:obj.receiveShadow,material:obj.material,
+        materials:Array.isArray(obj.material)?obj.material.slice():null});
+      for(const material of (Array.isArray(obj.material)?obj.material:[obj.material])) {
+        if(!material || this.antiGravityMaterials.has(material))continue;
+        const state={};
+        for(const key of ['opacity','transparent','depthWrite','depthTest','visible','wireframe','side','map'])state[key]=material[key];
+        if(material.color)state.color=material.color.clone();
+        if(material.emissive)state.emissive=material.emissive.clone();
+        this.antiGravityMaterials.set(material,state);
+      }
+    });
+  }
+
+  finishAntiGravityReset() {
+    for(const tween of this.antiGravityResetTweens)tween.kill();
+    this.antiGravityResetTweens.length=0;
+    this.antiGravityHomes?.forEach((home,obj)=>{
+      obj.position.copy(home.position);obj.rotation.copy(home.rotation);obj.scale.copy(home.scale);
+      obj.castShadow=home.castShadow;obj.receiveShadow=home.receiveShadow;obj.material=home.material;
+      if(home.materials)home.material.splice(0,home.material.length,...home.materials);
+    });
+    this.antiGravityMaterials?.forEach((state,material)=>{
+      let changed=false;
+      for(const [key,value] of Object.entries(state)) {
+        if(key==='color' || key==='emissive') {
+          if(!material[key].equals(value)){material[key].copy(value);changed=true;}
+        } else if(material[key]!==value){material[key]=value;changed=true;}
+      }
+      if(changed)material.needsUpdate=true;
+    });
+    this.deskGroup.updateMatrixWorld(true);
+    this.antiGravityLanding=false;
+    this.renderer.shadowMap.needsUpdate=true;
+  }
+
   triggerAntiGravity() {
+    if(this.isFloating)return;
+    // A quick restart finishes the previous landing before taking a new snapshot.
+    if(this.antiGravityLanding)this.finishAntiGravityReset();
+    this.snapshotAntiGravityHomes();
     this.isFloating = true;
 
     if (window.PortfolioHumor) {
       window.PortfolioHumor.playSound('fanfare');
-      window.PortfolioHumor.showToast('🚀 ZERO-G MODE ENGAGED! Desk is floating in zero gravity. Press "E" to toggle.');
+      window.PortfolioHumor.showToast('?? ZERO-G MODE ENGAGED! Desk is floating in zero gravity. Press "E" to toggle.');
     }
 
     if (typeof gsap !== 'undefined') {
-      gsap.to(this.deskGroup.position, {
-        y: 2.2,
-        duration: 2.2,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-      gsap.to(this.deskGroup.rotation, {
-        x: 0.08,
-        z: -0.06,
-        duration: 3.2,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-
-      this.folders.forEach((f, idx) => {
-        gsap.to(f.mesh.position, {
-          y: f.originalPos.y + 0.6 + (idx * 0.12),
-          duration: 2 + idx * 0.3,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut'
-        });
-        gsap.to(f.mesh.rotation, {
-          y: f.originalRot.y + 0.35,
-          duration: 2.8 + idx * 0.4,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut'
-        });
+      const home=this.getHomePose(this.deskGroup);
+      const float=(target,vars)=>this.antiGravityTweens.push(gsap.to(target,vars));
+      float(this.deskGroup.position,{y:home.position.y+2.2,duration:2.2,repeat:-1,yoyo:true,ease:'sine.inOut'});
+      float(this.deskGroup.rotation,{x:home.rotation.x+.08,z:home.rotation.z-.06,duration:3.2,repeat:-1,yoyo:true,ease:'sine.inOut'});
+      this.folders.forEach((f,idx)=>{
+        const pose=this.getHomePose(f.mesh);
+        float(f.mesh.position,{y:pose.position.y+.6+idx*.12,duration:2+idx*.3,repeat:-1,yoyo:true,ease:'sine.inOut'});
+        float(f.mesh.rotation,{y:pose.rotation.y+.35,duration:2.8+idx*.4,repeat:-1,yoyo:true,ease:'sine.inOut'});
       });
     }
   }
 
   stopAntiGravity() {
+    if(!this.isFloating)return;
     this.isFloating = false;
     if (window.PortfolioHumor) {
       window.PortfolioHumor.playSound('pop');
-      window.PortfolioHumor.showToast('🌍 Gravity Restored: Desk back on the ground.');
+      window.PortfolioHumor.showToast('?? Gravity Restored: Desk back on the ground.');
     }
-
-    if (typeof gsap !== 'undefined') {
-      gsap.killTweensOf(this.deskGroup.position);
-      gsap.killTweensOf(this.deskGroup.rotation);
-      gsap.to(this.deskGroup.position, { y: 0, duration: 1.2, ease: 'bounce.out' });
-      gsap.to(this.deskGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.8, ease: 'power2.out' });
-
-      this.folders.forEach((f) => {
-        gsap.killTweensOf(f.mesh.position);
-        gsap.killTweensOf(f.mesh.rotation);
-        gsap.to(f.mesh.position, {
-          x: f.originalPos.x,
-          y: f.originalPos.y,
-          z: f.originalPos.z,
-          duration: 0.8,
-          ease: 'power2.out'
-        });
-        gsap.to(f.mesh.rotation, {
-          x: 0,
-          y: f.originalRot.y,
-          z: f.originalRot.z,
-          duration: 0.8,
-          ease: 'power2.out'
-        });
-      });
-    }
+    for(const tween of this.antiGravityTweens)tween.kill();
+    this.antiGravityTweens.length=0;
+    this.antiGravityLanding=true;
+    if(typeof gsap==='undefined'){this.finishAntiGravityReset();return;}
+    this.antiGravityHomes.forEach((home,obj)=>{
+      for(const key of ['position','rotation','scale']) {
+        const target=obj[key],pose=home[key];
+        if(target.x===pose.x && target.y===pose.y && target.z===pose.z)continue;
+        gsap.killTweensOf(target);
+        const deskPosition=obj===this.deskGroup && key==='position';
+        this.antiGravityResetTweens.push(gsap.to(target,{x:pose.x,y:pose.y,z:pose.z,
+          duration:deskPosition?1.2:.8,ease:deskPosition?'bounce.out':'power2.out'}));
+      }
+    });
+    // Copy exact values after the tween, including scale and Euler order, to prevent drift.
+    this.antiGravityResetTweens.push(gsap.delayedCall(1.2,()=>this.finishAntiGravityReset()));
   }
 
 
