@@ -35,7 +35,7 @@ site:
       name: "Mosh"
       line: "Miss you mosh"
       row: 3
-      col: 4
+      col: 2
       look: {skin: "#E6B88C", hair-style: side part, hair-color: "#3A2312", outfit-color: "#7A1F3A", accessory: none}
   intro:
     enabled: true
@@ -48,6 +48,7 @@ site:
     golden-intensity: 0.8
     sky-drift: true
   classroom:
+    absent-name: "Mara Dimaculangan"
     board:
       title: "Sean Dyogi Truthers"
       subtitle: "Group 1"

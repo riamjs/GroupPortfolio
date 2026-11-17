@@ -15,6 +15,7 @@ class StudentApiTest {
     @Test void classroomIncludesConfiguredStudents() throws Exception {
         mvc.perform(get("/api/site/classroom"))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.classroom.absentName").value("Mara Dimaculangan"))
             .andExpect(jsonPath("$.students.length()").value(6))
             .andExpect(jsonPath("$.students[0].name").value("Dinorobong Tubo"))
             .andExpect(jsonPath("$.students[1].name").value("Diwata Pares"))

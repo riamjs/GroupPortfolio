@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     onFolderSelect: member => clearBook.open(member)
   });
 
+  if(deskScene.whiteboardFace)new WhiteboardDrawing(deskScene);
   intro?.attach(deskScene);
 
   // 4. Connect Easy Easter Eggs (Keys 'E', 'G', 'F' or Konami) to Desk Anti-Gravity

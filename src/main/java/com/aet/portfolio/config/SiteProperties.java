@@ -22,12 +22,12 @@ public record SiteProperties(@Valid Classroom classroom, @Valid @DefaultValue Th
                           @Min(1) @Max(4) int row, @Min(1) @Max(4) int col,
                           boolean dance, @Valid Look look) {}
 
-    @AssertTrue(message = "Student seats must be unique and cannot use viewer seat (4,2)")
+    @AssertTrue(message = "Named student seats must be unique and stay in rows 1-3; row 4 is reserved for the viewer, absent seat, and extras")
     public boolean isStudentSeatingValid() {
         if (students == null) return true;
         var seats = new java.util.HashSet<Integer>();
         for (var student : students) {
-            if ((student.row() == 4 && student.col() == 2) ||
+            if (student.row() == 4 ||
                 !seats.add(student.row() * 4 + student.col())) return false;
         }
         return true;
@@ -39,7 +39,8 @@ public record SiteProperties(@Valid Classroom classroom, @Valid @DefaultValue Th
                         @DefaultValue("true") boolean soundEnabled) {}
     public record Audio(@DefaultValue("/assets/audio/notebook-theme.mp3") String notebookTheme) {}
     public record Classroom(List<String> whiteboardLines, List<String> tvSlides, List<String> teacherLines,
-                            Board board, Placard mission, Placard vision) {}
+                            Board board, Placard mission, Placard vision,
+                            @DefaultValue("Mara Dimaculangan") @NotBlank String absentName) {}
     public record Theme(@DefaultValue("0.8") @DecimalMin("0.0") @DecimalMax("1.0") double goldenIntensity,
                         @DefaultValue("true") boolean skyDrift) {}
     public record Board(String title, String subtitle, List<String> names) {}

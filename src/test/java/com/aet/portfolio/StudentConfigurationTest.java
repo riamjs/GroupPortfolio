@@ -30,6 +30,18 @@ class StudentConfigurationTest {
         runner.withPropertyValues("site.students[0].row=4", "site.students[0].col=2")
             .run(context -> assertThat(context).hasFailed());
     }
+    @Test void newInnerSlotBinds() {
+        runner.withPropertyValues("site.students[0].row=3", "site.students[0].col=3")
+            .run(context -> assertThat(context).hasNotFailed());
+    }
+    @Test void absentSeatFailsBinding() {
+        runner.withPropertyValues("site.students[0].row=4", "site.students[0].col=1")
+            .run(context -> assertThat(context).hasFailed());
+    }
+    @Test void blankAbsentNameFailsBinding() {
+        runner.withPropertyValues("site.classroom.absent-name= ")
+            .run(context -> assertThat(context).hasFailed());
+    }
     @Test void validSeatBinds() {
         runner.run(context -> assertThat(context).hasNotFailed());
     }
