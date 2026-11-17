@@ -5,6 +5,17 @@ const INVERT_Y = false;
 const MOUSE_YAW_RANGE = Math.PI * 1.15;
 const PITCH_RANGE = 1.5;
 const KEY_LOOK_VIEWPORTS_PER_SECOND = 0.5;
+const SEAT_COLUMNS = [-4.39, -1.59, 1.335, 4.135];
+const SEAT_ROWS = [-6.65, -3.2, 0.25, 3.7];
+const studentDefaults = [
+  ['s1','Dinorobong Tubo','',1,1,true,'#C68A5E','curly','#3B2A1E','#D8402F','none'],
+  ['s2','Diwata Pares','I love pares',1,4,false,'#E0AC82','bob','#1E1A18','#2E9C8F','hairclip'],
+  ['s3','Bea Borres',"My baby daddy Meray, Hopea, I'm dinadaan-daanan lang",2,2,false,'#F0C9A0','twin buns','#4A2C2A','#9A7BC8','none'],
+  ['s4','Lans','THIS IS LANS!!!',2,3,false,'#B97A52','ponytail','#231815','#F2B632','headband'],
+  ['s5','Buseng','Sir, walang kanin, sir?',3,1,false,'#D69A6B','crew cut','#1B1B1B','#E8892B','spoon'],
+  ['s6','Mosh','Miss you mosh',3,4,false,'#E6B88C','side part','#3A2312','#7A1F3A','none']
+].map(([id,name,line,row,col,dance,skin,hairStyle,hairColor,outfitColor,accessory]) =>
+  ({id,name,line,row,col,dance,look:{skin,hairStyle,hairColor,outfitColor,accessory}}));
 const tabletopLayout = [
   { item: 'spiral-notebook', x: -4.4, z: -.04, yaw: 0.14 },
   { item: 'long-folder', x: -2.35, z: -.04, yaw: -0.11 },
@@ -14,7 +25,7 @@ const tabletopLayout = [
 ];
 
 class CameraRig {
-  static SEAT_POSE = Object.freeze({ x: -8.2, y: 4, z: 3.7, yaw: .493, pitch: -.10, fov: 50 });
+  static SEAT_POSE = Object.freeze({ x: -1.59, y: 4, z: 3.7, yaw: .1, pitch: -.10, fov: 50 });
   static DESK_POSE = Object.freeze({ x: 0, y: 8, z: -11.55, yaw: Math.PI, pitch: -Math.PI * 85 / 180 });
 
   capturePose() {
@@ -243,6 +254,14 @@ class DeskScene {
     const floor = -2.84, ceiling = 10, front = -15, back = 9, side = 11;
     const unitBox = new THREE.BoxGeometry(1, 1, 1);
     const paint = color => new THREE.MeshStandardMaterial({ color, roughness: 0.88 });
+    const paints = new Map();
+    this.studentPaint = color => {
+      const key = new THREE.Color(color).getHex();
+      if (!paints.has(key)) paints.set(key, paint(color));
+      return paints.get(key);
+    };
+    this.studentGeometry = { box: unitBox, sphere: new THREE.SphereGeometry(1, 10, 8) };
+    this.studentHitMaterial = new THREE.MeshBasicMaterial({visible:false});
     const white = paint(Theme.cream), yellow = paint(Theme.sun), green = paint(0x69bd4c);
     const frame = paint(Theme.ink), silver = paint(Theme.teal);
     const box = (parent, mat, x, y, z, w, h, d) => {
@@ -444,12 +463,9 @@ class DeskScene {
 
     // Each tablet-arm chair uses the same local parts; one instanced draw per material.
     const seats = [];
-    for (const z of [-12,-8.9,-5.8,0.1,3.7]) {
-      for (const x of [-8.2,-4.2,4.2,8.2]) {
-        if (z === -12 && (x > 0 || x === -4.2)) continue;
-        if (z >= 0 && Math.abs(x) < 6) continue;
-        if (x !== CameraRig.SEAT_POSE.x || z !== CameraRig.SEAT_POSE.z) seats.push([x,z]);
-      }
+    for (let row=1; row<=4; row++) for (let col=1; col<=4; col++) {
+      if (row===4 && col===2) continue;
+      seats.push([SEAT_COLUMNS[col-1],SEAT_ROWS[row-1]]);
     }
     const chairBatch = (material, parts) => {
       const mesh = new THREE.InstancedMesh(unitBox, material, seats.length * parts.length);
@@ -458,7 +474,7 @@ class DeskScene {
         pose.position.set(x+dx,floor+dy,z+dz); pose.scale.set(w,h,d);
         pose.rotation.x = tilt; pose.updateMatrix(); mesh.setMatrixAt(i++,pose.matrix);
       }
-      mesh.castShadow = mesh.receiveShadow = true; room.add(mesh);
+      mesh.castShadow = material !== frame; mesh.receiveShadow = true; room.add(mesh);
     };
     chairBatch(green, [[0,1.73,0,1.67,0.14,1.55],[0,2.56,0.68,1.62,1.24,0.13,0.1],[0.48,2.7,-0.48,1.22,0.12,1.28]]);
     const supports = [[0.77,2.13,-0.36,0.1,1.04,0.1],[0,1.54,0,1.62,0.12,1.46]];
@@ -467,7 +483,7 @@ class DeskScene {
     // One plain monoblock for the viewer; all tablet-arm classroom chairs stay unchanged.
     const viewerChair = this.viewerChair = new THREE.Group(); room.add(viewerChair);
     viewerChair.position.set(CameraRig.SEAT_POSE.x,0,CameraRig.SEAT_POSE.z);
-    const plastic = Theme.toon(0x8fb3c9);
+    const plastic = this.studentPaint('#8FB3C9');
     box(viewerChair,plastic,0,floor+1.73,0,1.67,.14,1.55);
     const backShape = new THREE.Shape();
     backShape.moveTo(-.82,-.65); backShape.lineTo(.82,-.65);
@@ -476,6 +492,9 @@ class DeskScene {
     const plasticBack = new THREE.Mesh(new THREE.ExtrudeGeometry(backShape,{depth:.09,bevelEnabled:false}),plastic);
     plasticBack.position.set(0,floor+2.42,.68); plasticBack.rotation.x=.12; viewerChair.add(plasticBack);
     for (const x of [-.69,.69]) for (const z of [-.58,.58]) box(viewerChair,plastic,x,floor+.83,z,.11,1.66,.11);
+
+    this.buildStudents(room, floor);
+    this.renderer.shadowMap.needsUpdate = true;
 
     const glow = texture(128,128,ctx => {
       const g = ctx.createRadialGradient(64,64,0,64,64,64);
@@ -582,6 +601,105 @@ class DeskScene {
         this.renderer.shadowMap.needsUpdate = true;
       }
     });
+  }
+
+  buildStudent(look) {
+    const person = new THREE.Group(), torso = new THREE.Group(), head = new THREE.Group();
+    const paint = this.studentPaint, geometry = this.studentGeometry;
+    // Batch repeated primitives by color within each moving part. All six share geometry/materials.
+    const part = (parent, shape, color, poses) => {
+      const mesh = new THREE.InstancedMesh(geometry[shape], paint(color), poses.length);
+      const pose = new THREE.Object3D();
+      for (let i=0; i<poses.length; i++) {
+        const [x,y,z,w,h,d] = poses[i];
+        pose.position.set(x,y,z); pose.scale.set(w,h,d); pose.updateMatrix(); mesh.setMatrixAt(i,pose.matrix);
+      }
+      mesh.receiveShadow=true; mesh.castShadow=false; parent.add(mesh); return mesh;
+    };
+    part(person,'box','#35373D',[
+      [-.29,1.96,-.36,.38,.3,.92],[.29,1.96,-.36,.38,.3,.92],
+      [-.29,1.1,-.74,.34,1.42,.32],[.29,1.1,-.74,.34,1.42,.32],
+      [-.29,.34,-.9,.43,.28,.64],[.29,.34,-.9,.43,.28,.64]]);
+    torso.position.set(0,2.05,0); person.add(torso);
+    part(torso,'box',look.outfitColor,[[0,.43,.08,.93,.9,.56]]);
+    head.position.set(0,1.48,.03); torso.add(head);
+    part(head,'sphere',look.skin,[[0,0,0,.43,.53,.4]]);
+    // Generic dot eyes and a small mouth, one shared primitive and one ink material.
+    part(head,'sphere',Theme.ink,[[-.16,.06,-.38,.043,.046,.025],[.16,.06,-.38,.043,.046,.025],[0,-.19,-.379,.09,.025,.02]]);
+    const hair = [[0,.34,.06,.45,.23,.4]];
+    switch (look.hairStyle) {
+      case 'curly': hair.splice(0,1,[-.28,.34,0,.25,.26,.35],[.27,.36,0,.25,.26,.35],[0,.48,.06,.27,.25,.36]); break;
+      case 'bob': hair[0]=[0,.16,.17,.48,.48,.35]; break;
+      case 'twin buns': hair.push([-.4,.44,.1,.21,.21,.21],[.4,.44,.1,.21,.21,.21]); break;
+      case 'ponytail': hair.push([0,.18,.5,.18,.4,.22]); break;
+      case 'crew cut': hair[0]=[0,.43,.04,.43,.13,.37]; break;
+      case 'side part': hair.push([-.16,.44,-.13,.29,.12,.27]); break;
+    }
+    part(head,'sphere',look.hairColor,hair);
+    if (look.hairStyle==='curly') part(torso,'sphere',look.outfitColor,[[0,1.13,.28,.48,.38,.23]]);
+    if (look.hairStyle==='bob') part(torso,'box','#FFF3D6',[[0,.74,-.211,.32,.06,.025]]);
+    if (look.hairStyle==='twin buns') part(torso,'box','#FFF3D6',[[0,.43,-.211,.05,.86,.025]]);
+    if (look.hairStyle==='crew cut') part(torso,'box','#FFF3D6',[[-.14,.8,-.22,.18,.12,.03],[.14,.8,-.22,.18,.12,.03]]);
+    const arms=[];
+    for (const side of [-1,1]) {
+      const arm=new THREE.Group(); arm.position.set(side*.46,.72,-.02); torso.add(arm); arms.push(arm);
+      part(arm,'box',look.outfitColor,[[side<0 ? .22 : .04,.17,-.17,side<0 ? .58 : .24,.32,.55]]);
+      part(arm,'sphere',look.skin,[[side<0 ? .62 : .04,.12,-.66,.14,.1,.22]]);
+    }
+    if (look.accessory==='hairclip') part(head,'box','#F2B632',[[.35,.27,-.25,.16,.06,.06]]);
+    if (look.accessory==='headband') part(head,'box','#FFF3D6',[[0,.34,-.32,.79,.085,.055]]);
+    if (look.accessory==='spoon') {
+      part(arms[1],'box','#BEC9CF',[[.04,.08,-.91,.045,.045,.36]]);
+      part(arms[1],'sphere','#BEC9CF',[[.04,.08,-1.12,.1,.035,.14]]);
+    }
+    person.userData.parts={torso,head,arms};
+    return person;
+  }
+
+  buildStudents(room, floor) {
+    this.students=[];
+    this.studentMotionPreference=matchMedia('(prefers-reduced-motion: reduce)');
+    const data=Array.isArray(this.classroom.students) ? this.classroom.students : studentDefaults;
+    const occupied=new Set(['4:2']);
+    for (const student of data) {
+      const key=student.row+':'+student.col;
+      if (!student.look || student.row<1 || student.row>4 || student.col<1 || student.col>4 || occupied.has(key)) continue;
+      occupied.add(key);
+      const person=this.buildStudent(student.look);
+      person.position.set(SEAT_COLUMNS[student.col-1],floor,SEAT_ROWS[student.row-1]);
+      person.name=student.id; room.add(person);
+      const parts=person.userData.parts;
+      // Stable id hash supplies a fixed +/-3 degree head tilt without per-frame randomness.
+      let seed=17; for (const char of student.id) seed=(seed*31+char.charCodeAt(0))>>>0;
+      parts.head.rotation.z=((seed%601)/600-.5)*Math.PI/30;
+      const anchor=new THREE.Object3D(); anchor.position.set(0,.8,0); parts.head.add(anchor);
+      const hitbox=new THREE.Mesh(this.studentGeometry.box,this.studentHitMaterial);
+      hitbox.position.set(0,2.5,0);hitbox.scale.set(1.6,3,1.5);hitbox.layers.set(1);
+      hitbox.userData={type:'student',student,anchor};person.add(hitbox);this.interactiveObjects.push(hitbox);
+      this.students.push({student,person,...parts,anchor,hitbox});
+    }
+  }
+
+  studentInteractionBlocked() {
+    return this.view !== 'seat' || this.interactionBlocked();
+  }
+
+  showStudentBubble(obj, duration=600) {
+    if (this.studentInteractionBlocked()) return;
+    clearTimeout(this.seanHideTimer);
+    const {student,anchor}=obj.userData;
+    this.bubbleAnchor=anchor;
+    this.bubbleStudentId=student.id;
+    this.teacherBubble.textContent=student.name+(student.line ? '\n'+student.line : '');
+    this.teacherBubble.style.whiteSpace='pre-line';
+    this.teacherBubble.style.maxWidth='min(14em, calc(100vw - 16px))';
+    this.teacherBubble.style.overflowWrap='anywhere';
+    this.speechUntil=performance.now()+duration;
+    this.hideTooltip();
+  }
+
+  onStudentClick(id) {
+    // TODO: later feature
   }
 
   buildWindowView(side,sill,lintel,start,end) {
@@ -729,7 +847,7 @@ class DeskScene {
       this.teacherBubble.classList.remove('visible'); this.speechUntil=0; return;
     }
     this.camera.updateMatrixWorld();
-    this.speechAnchor.getWorldPosition(this.speechPoint).project(this.camera);
+    (this.bubbleAnchor || this.speechAnchor).getWorldPosition(this.speechPoint).project(this.camera);
     const p=this.speechPoint, rect=this.renderer.domElement.getBoundingClientRect();
     const half = this.teacherBubble.offsetWidth / 2 + 8;
     this.teacherBubble.style.left = THREE.MathUtils.clamp(rect.left + (p.x + 1) * rect.width / 2, half, window.innerWidth - half) + 'px';
@@ -764,6 +882,7 @@ class DeskScene {
     if (!first) return null;
     if (this.view === 'seat') {
       // A visible item occludes the desk below it, but cannot open from the seat.
+      if (first.object.userData.type === 'student') return first;
       const sean = intersects.find(hit => hit.object.userData.type === 'teacher');
       if (sean) return sean;
       if (this.tabletopObject(first.object)) return { object: this.deskHit };
@@ -1591,6 +1710,14 @@ class DeskScene {
 
     // Click handler for 3D props & folders
     dom.addEventListener('click', (e) => this.onClick(e));
+    dom.addEventListener('pointerup', e => {
+      if (e.pointerType !== 'touch' || this.studentInteractionBlocked() || this.hasDraggedMeaningfully) return;
+      this.updateHover(e);
+      if (this.hoveredObject?.userData.type === 'student') {
+        this.showStudentBubble(this.hoveredObject,3000);
+        this.resetHoverState();
+      }
+    });
   }
 
   adjustCameraForScreen() {
@@ -1668,6 +1795,7 @@ class DeskScene {
   }
 
   onMouseMove(e) {
+    if (e.sourceCapabilities?.firesTouchEvents) return;
     if (!this.inputEnabled) return;
     if (this.isCameraZoomed) {
       this.hideTooltip();
@@ -1731,7 +1859,8 @@ class DeskScene {
         this.hoveredObject = hitObject;
         this.applyHoverState(hitObject, e);
       } else if (this.hoveredObject) {
-        this.positionTooltip(e);
+        if (hitObject.userData.type==='student') this.showStudentBubble(hitObject);
+        else this.positionTooltip(e);
       }
     } else {
       this.resetHoverState();
@@ -1741,7 +1870,9 @@ class DeskScene {
   applyHoverState(obj, e) {
     document.body.style.cursor = 'pointer';
 
-    if (obj.userData.type === 'placard') {
+    if (obj.userData.type === 'student') {
+      this.showStudentBubble(obj);
+    } else if (obj.userData.type === 'placard') {
       obj.material.color.set(Theme['sun-glow']);
       this.showTooltip('Click to read placard', e);
     } else if (obj.userData.type === 'teacher') {
@@ -1886,6 +2017,8 @@ class DeskScene {
   showSean(duration = Infinity) {
     if (this.view !== 'seat' || this.interactionBlocked()) return;
     clearTimeout(this.seanHideTimer);
+    this.bubbleAnchor=null; this.bubbleStudentId=null;
+    this.teacherBubble.style.maxWidth=''; this.teacherBubble.style.overflowWrap='';
     const lines = Array.isArray(this.classroom.teacherLines) && this.classroom.teacherLines.length
       ? this.classroom.teacherLines : classroomDefaults.teacherLines;
     this.teacherBubble.textContent = lines[this.speechIndex % lines.length];
@@ -1906,7 +2039,9 @@ class DeskScene {
     if (this.view === 'seat' && tabletop && type !== 'front-desk') return;
     if (this.view === 'desk' && !tabletop) return;
 
-    if (type === 'front-desk') {
+    if (type === 'student') {
+      if (!this.studentInteractionBlocked()) this.onStudentClick(obj.userData.student.id);
+    } else if (type === 'front-desk') {
       this.enterDeskView();
     } else if (type === 'placard') {
       this.openPlacard(obj);
@@ -2349,6 +2484,19 @@ class DeskScene {
       this.pendingHover = null;
     }
     const seconds = performance.now() * 0.001;
+    if (this.bubbleStudentId && this.studentInteractionBlocked()) {
+      this.teacherBubble.classList.remove('visible'); this.speechUntil=0;
+    } else if (this.hoveredObject?.userData.type==='student' && !this.isDraggingView) {
+      this.speechUntil=Math.max(this.speechUntil,seconds*1000+600);
+    }
+    for (const dancer of this.students) {
+      if (!dancer.student.dance || this.view !== 'seat' || this.isCameraZoomed || !this.inputEnabled || this.studentMotionPreference.matches) continue;
+      dancer.torso.rotation.z=.14*Math.sin(seconds*3.6);
+      dancer.arms[0].rotation.x=.28*(1+Math.sin(seconds*3.6));
+      dancer.arms[1].rotation.x=.28*(1-Math.sin(seconds*3.6));
+      dancer.head.position.y=1.48+.045*Math.sin(seconds*7.2);
+    }
+
     this.classroomRotors.forEach((rotor, i) => { rotor.rotation.y = seconds * (i === 2 ? 1.3 : 0.78) + i; });
     this.classroomShafts.forEach((beam, i) => { beam.position.y = 2.42 + 0.055 * Math.sin(seconds * 0.24 + i); });
     this.classroomDust.position.set(0.13 * Math.sin(seconds * 0.31), 0.12 * Math.sin(seconds * 0.21), 0.11 * Math.cos(seconds * 0.25));

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const classroomRequest = API.getClassroom().then(classroom => {
     Theme.configure(classroom.theme);
     return classroom;
-  });
+  }).catch(() => classroomDefaults);
   const intro = window.Intro?.start(classroomRequest);
   const themeFonts = Promise.all(['Lilita One', 'Patrick Hand'].map(family =>
     document.fonts.load('16px "' + family + '"').catch(() => {})));
