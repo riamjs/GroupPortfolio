@@ -1,3 +1,51 @@
+// One shared, idle-painted canvas supplies John's 3D folder and opened cover.
+const JohnFolderArt = (() => {
+  const cache=new Map();
+  return {get(member) {
+    const key=member.name+'|'+member.section;
+    if(cache.has(key))return cache.get(key);
+    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=1536;
+    canvas.textContent='Portfolio IN Advanced Emerging Technologies. Name: '+member.name+'. Gr. & Sec: '+(member.section||'BSIT 3-1');
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#1F3FBF';ctx.fillRect(0,0,1024,1536);
+    const texture=new THREE.CanvasTexture(canvas);texture.anisotropy=4;
+    const entry={canvas,texture};cache.set(key,entry);
+    entry.ready=Promise.all([document.fonts.load('190px "Dancing Script"'),document.fonts.load('72px "Lilita One"'),document.fonts.load('38px "Patrick Hand"')]).catch(()=>{}).then(()=>new Promise(resolve=>{
+      const paint=()=>{
+        let seed=26031;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+        function torn(x,y,w,h,color,tilt=0,grid=false){
+          ctx.save();ctx.translate(x,y);ctx.rotate(tilt);ctx.beginPath();
+          for(let edge=0;edge<4;edge++)for(let i=0;i<=16;i++){
+            const t=i/16,j=(random()-.5)*20;
+            const px=edge===0?t*w:edge===1?w+j:edge===2?(1-t)*w:j;
+            const py=edge===0?j:edge===1?t*h:edge===2?h+j:(1-t)*h;
+            if(!edge&&!i)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+          }
+          ctx.closePath();ctx.fillStyle=color;ctx.fill();
+          if(grid){ctx.clip();ctx.strokeStyle='#78B8E8';ctx.lineWidth=1.5;ctx.beginPath();for(let a=0;a<w;a+=32){ctx.moveTo(a,0);ctx.lineTo(a,h)}for(let b=0;b<h;b+=32){ctx.moveTo(0,b);ctx.lineTo(w,b)}ctx.stroke()}
+          ctx.restore();
+        }
+        const star=(x,y,r)=>{ctx.beginPath();for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,d=i%2?r*.43:r;ctx.lineTo(x+Math.cos(a)*d,y+Math.sin(a)*d)}ctx.closePath();ctx.fillStyle='#CCD3DE';ctx.fill();ctx.strokeStyle='#FFFFFF';ctx.lineWidth=3;ctx.stroke()};
+        const flower=(x,y,r)=>{ctx.save();ctx.translate(x,y);ctx.fillStyle='#1F3FBF';ctx.strokeStyle='#FFFFFF';ctx.lineWidth=7;for(let i=0;i<5;i++){ctx.save();ctx.rotate(i*Math.PI*2/5);ctx.beginPath();ctx.ellipse(0,-r*.55,r*.4,r*.6,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}ctx.fillStyle='#78B8E8';ctx.beginPath();ctx.arc(0,0,r*.25,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()};
+        torn(15,0,730,510,'#FCFCF4',-.07,true);torn(660,20,440,510,'#1A1A22',.08);
+        torn(-35,575,470,790,'#C69B63',-.06);torn(230,230,800,410,'#78B8E8',-.07);
+        torn(70,805,915,310,'#1A1A22',.025);torn(650,1115,430,455,'#1A1A22',-.07);
+        for(const [x,y,r] of [[760,110,33],[915,260,46],[830,420,26],[925,1260,36],[780,1480,36]])star(x,y,r);
+        ctx.strokeStyle='#CCD3DE';ctx.lineWidth=6;for(const [x,y] of [[785,320],[820,1360]]){ctx.beginPath();for(let i=0;i<90;i++){const a=i*.17,r=i*.65;ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}ctx.stroke()}
+        flower(175,420,89);flower(866,1185,82);
+        ctx.save();ctx.rotate(-.055);ctx.font='190px "Dancing Script", cursive';ctx.lineJoin='round';ctx.lineWidth=16;ctx.strokeStyle='#FFFFFF';ctx.fillStyle='#78B8E8';ctx.strokeText('Portfolio',105,650,850);ctx.fillText('Portfolio',105,650,850);ctx.restore();
+        torn(390,668,222,128,'#FFFDF5',-.035,true);ctx.font='74px "Lilita One", sans-serif';ctx.fillStyle='#1F3FBF';ctx.textAlign='center';ctx.fillText('IN',499,756);
+        ctx.save();ctx.translate(520,958);ctx.rotate(.025);ctx.font='72px "Lilita One", sans-serif';ctx.lineWidth=7;ctx.strokeStyle='#FFFFFF';ctx.fillStyle='#78B8E8';for(const [line,y] of [['Advanced Emerging',0],['Technologies',90]]){ctx.strokeText(line,0,y,835);ctx.fillText(line,0,y,835)}ctx.restore();
+        torn(43,1230,745,220,'#FFFDF5',-.04,true);ctx.textAlign='left';ctx.fillStyle='#273C70';ctx.font='38px "Patrick Hand", cursive';ctx.fillText('Name: '+member.name,125,1300,625);ctx.fillText('Gr. & Sec: '+(member.section||'BSIT 3-1'),125,1370,625);
+        for(const [x,y] of [[60,100],[850,1360]]){ctx.save();ctx.translate(x,y);ctx.rotate(-.08);ctx.fillStyle='#E4D6B8';ctx.fillRect(0,0,120,142);ctx.strokeStyle='#1F3FBF';ctx.lineWidth=4;ctx.setLineDash([5,6]);ctx.strokeRect(6,6,108,130);ctx.setLineDash([]);ctx.strokeRect(21,23,78,90);star(60,66,24);ctx.restore()}
+        ctx.fillStyle='#D9C08B';for(const [x,y,a] of [[300,195,-.13],[650,1170,.12]]){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.globalAlpha=.78;ctx.fillRect(0,0,180,49);ctx.restore()}
+        ctx.fillStyle='#1F3FBF';ctx.fillRect(981,452,43,190);ctx.strokeStyle='#78B8E8';ctx.lineWidth=7;ctx.strokeRect(988,460,30,173);
+        ctx.fillStyle='rgba(255,255,255,.10)';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(115,0);ctx.lineTo(840,1536);ctx.lineTo(660,1536);ctx.closePath();ctx.fill();texture.needsUpdate=true;resolve(entry);
+      };
+      if(window.requestIdleCallback)requestIdleCallback(paint,{timeout:800});else setTimeout(paint,0);
+    }));return entry;
+  }};
+})();
+
 /** Interactive group portfolio desk in a Philippine high school classroom. */
 // Keyboard look direction; drag keeps its original direction.
 const INVERT_X = false;
@@ -436,12 +484,11 @@ class DeskScene {
     const tv = new THREE.Group(); room.add(tv);
     tv.position.set(boardX, boardY + boardHeight / 2 + .35 + 2.75 / 2, front + .21);
     box(tv, frame, 0, 0, 0, 4.87, 2.75, .2);
-    this.tvTexture = texture(768,432,() => {});
+    this.tvTexture = texture(512,288,ctx => {ctx.fillStyle="#1034A6";ctx.fillRect(0,0,512,288)});
     const screen = new THREE.Mesh(new THREE.PlaneGeometry(4.72,2.61),
       new THREE.MeshBasicMaterial({map:this.tvTexture}));
     screen.position.z = .11; tv.add(screen);
-    this.tvStart = performance.now();
-    this.drawTVSlide(0);
+    this.initDVD(screen);
     this.buildTeacher(room, floor, box, paint, texture);
     const notices = texture(1024, 560, ctx => {
       ctx.fillStyle = '#aa7952'; ctx.fillRect(0,0,1024,560);
@@ -902,15 +949,36 @@ class DeskScene {
     }
   }
 
-  drawTVSlide(index) {
-    this.tvIndex = index;
-    const ctx = this.tvTexture.image.getContext('2d');
-    ctx.fillStyle = Theme.cream; ctx.fillRect(0,0,768,432);
-    Theme.drawTitle(ctx,this.classroom.tvSlides[index],64,245,640);
-    ctx.fillStyle = Theme.sun; ctx.fillRect(64,125,120,40);
-    ctx.fillStyle = Theme.ink; ctx.font='26px "Patrick Hand", "Comic Sans MS", sans-serif';
-    ctx.fillText(this.classroom.board.subtitle,72,153,104);
-    this.tvTexture.needsUpdate = true;
+  initDVD(screen) {
+    this.tvScreen=screen;this.tvFrustum=new THREE.Frustum();this.tvMatrix=new THREE.Matrix4();
+    screen.updateWorldMatrix(true,false);this.tvBounds=new THREE.Box3().setFromObject(screen);
+    this.tvMotion=matchMedia('(prefers-reduced-motion: reduce)');this.tvLastCheck=-Infinity;this.tvPrevious=0;
+    this.tvDVD={x:200,y:106,width:112.64,height:75,phaseX:200,phaseY:106,dirty:true,image:null};
+    this.tvMotion.addEventListener('change',()=>{this.tvDVD.dirty=true});
+    // Loading failure keeps the canvas-drawn fallback, without throwing or logging.
+    fetch('assets/textures/dvd-bounce.png').then(r=>{if(!r.ok)throw new Error();return r.blob()})
+      .then(blob=>createImageBitmap(blob)).then(image=>{
+        const d=this.tvDVD;d.image=image;d.width=Math.min(112.64,230*image.width/image.height);d.height=d.width*image.height/image.width;
+        d.phaseX=(512-d.width)/2;d.phaseY=(288-d.height)/2;d.dirty=true;
+      }).catch(()=>{});
+  }
+
+  updateDVD(seconds) {
+    if(seconds-this.tvLastCheck<1/15)return;
+    const dt=this.tvPrevious?Math.min(seconds-this.tvPrevious,.15):0;
+    this.tvLastCheck=this.tvPrevious=seconds;
+    if(this.view!=='seat'||this.interactionBlocked()||!this.inputEnabled||document.hidden)return;
+    this.tvMatrix.multiplyMatrices(this.camera.projectionMatrix,this.camera.matrixWorldInverse);
+    this.tvFrustum.setFromProjectionMatrix(this.tvMatrix);
+    if(!this.tvFrustum.intersectsBox(this.tvBounds))return;
+    const d=this.tvDVD,maxX=512-d.width,maxY=288-d.height;
+    if(this.tvMotion.matches){if(!d.dirty)return;d.x=maxX/2;d.y=maxY/2}
+    else {d.phaseX=(d.phaseX+dt*76.8)%(2*maxX);d.phaseY=(d.phaseY+dt*56.064)%(2*maxY);
+      d.x=d.phaseX<=maxX?d.phaseX:2*maxX-d.phaseX;d.y=d.phaseY<=maxY?d.phaseY:2*maxY-d.phaseY}
+    const ctx=this.tvTexture.image.getContext('2d');ctx.fillStyle='#1034A6';ctx.fillRect(0,0,512,288);
+    if(d.image)ctx.drawImage(d.image,d.x,d.y,d.width,d.height);
+    else {ctx.save();ctx.translate(d.x,d.y);ctx.fillStyle='#FFFFFF';ctx.beginPath();ctx.ellipse(d.width/2,24,d.width*.44,18,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1034A6';ctx.beginPath();ctx.ellipse(d.width/2,24,12,5,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#FFFFFF';ctx.font='bold italic 27px sans-serif';ctx.textAlign='center';ctx.fillText('VIDEO',d.width/2,68,d.width);ctx.restore()}
+    d.dirty=false;this.tvTexture.needsUpdate=true;
   }
 
   buildTeacher(room, floor, box, paint, texture) {
@@ -994,8 +1062,7 @@ class DeskScene {
   }
 
   updateFrontWall(seconds) {
-    const index=Math.floor((seconds*1000-this.tvStart)/4000) % this.classroom.tvSlides.length;
-    if (index !== this.tvIndex) this.drawTVSlide(index);
+    this.updateDVD(seconds);
     this.teacherTorso.scale.y=1+0.005*Math.sin(seconds*2);
     this.teacherHead.rotation.z=0.026*Math.sin(seconds*0.8);
     // Seated forearms remain resting on the desk.
@@ -1347,7 +1414,7 @@ class DeskScene {
       parent.add(part);
     }
     cardLayer(folder, 1, 0.014, 1.53, 0, -0.021, 0, card);
-    cardLayer(folder, 0.34, 0.014, 0.09, 0.27, -0.021, -0.796, card);
+    cardLayer(folder, 0.09, 0.014, 0.34, 0.535, -0.021, -0.35, this.studentPaint('#1F3FBF'));
     for (let i = 0; i < 6; i++) {
       cardLayer(folder, 0.94, 0.004, 1.45, (i % 3) * 0.004, -0.011 + i * 0.004, 0, paper);
     }
@@ -1358,36 +1425,7 @@ class DeskScene {
     folder.scale.set(1.18, 1, 1.18);
     cardLayer(hinge, 1, 0.012, 1.53, 0.5, 0, 0, card);
 
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 1224;
-    const ctx = canvas.getContext('2d');
-    const map = new THREE.CanvasTexture(canvas);
-    map.anisotropy = 4;
-    const border = new Image();
-    function draw() {
-      ctx.fillStyle = '#fffdfa';
-      ctx.fillRect(0, 0, 800, 1224);
-      if (border.naturalWidth) ctx.drawImage(border, 22, 26, 756, 1172);
-      ctx.beginPath();
-      ctx.roundRect(105, 460, 590, 185, 30);
-      ctx.fillStyle = '#fff2f6';
-      ctx.fill();
-      ctx.strokeStyle = '#d99caf';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-      ctx.fillStyle = '#423942';
-      ctx.textAlign = 'center';
-      ctx.font = '600 48px "Plus Jakarta Sans", sans-serif';
-      ctx.fillText(member.name, 400, 571, 540);
-      ctx.font = '30px "Plus Jakarta Sans", sans-serif';
-      ctx.fillText('Do Not Open (Seriously)', 400, 1070);
-      map.needsUpdate = true;
-    }
-    border.onload = draw;
-    border.src = 'assets/borders/wavy-pink.svg';
-    draw();
-    document.fonts.load('600 48px "Plus Jakarta Sans"').then(draw).catch(() => {});
+    const map=JohnFolderArt.get(member).texture;
     const face = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.53),
       new THREE.MeshStandardMaterial({ map, roughness: 0.96 }));
     face.rotation.x = -Math.PI / 2;
@@ -1542,6 +1580,54 @@ class DeskScene {
     });
   }
 
+  cachedDetailTexture(key,width,height,draw) {
+    this.detailTextures ||= new Map();
+    if(this.detailTextures.has(key))return this.detailTextures.get(key);
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const texture=new THREE.CanvasTexture(canvas);texture.anisotropy=4;
+    this.detailTextures.set(key,texture);
+    const paint=()=>{draw(canvas.getContext('2d'));texture.needsUpdate=true};
+    document.fonts.ready.then(()=>{if(window.requestIdleCallback)requestIdleCallback(paint,{timeout:600});else setTimeout(paint,0)});
+    return texture;
+  }
+
+  detailLaptop(laptop,lid,metal) {
+    const ink=this.studentPaint('#1F2937'),trim=this.studentPaint('#64748B');
+    const stickers=this.cachedDetailTexture('laptop-stickers',512,384,ctx=>{
+      ctx.fillStyle='#475569';ctx.fillRect(0,0,512,384);ctx.lineJoin='round';ctx.lineCap='round';
+      let seed=913;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+      const sticker=(x,y,w,h,color,draw)=>{ctx.save();ctx.translate(x,y);ctx.rotate((random()-.5)*.22);ctx.fillStyle=color;ctx.strokeStyle='#3A2312';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,12);ctx.fill();ctx.stroke();draw();ctx.restore()};
+      sticker(110,98,130,112,'#FFF3D6',()=>{ctx.fillStyle='#D98236';ctx.fillRect(-34,-14,60,45);ctx.strokeRect(-34,-14,60,45);ctx.beginPath();ctx.arc(31,4,14,-Math.PI/2,Math.PI/2);ctx.stroke();ctx.beginPath();ctx.moveTo(-45,37);ctx.lineTo(42,37);ctx.stroke();ctx.strokeStyle='#A1593A';ctx.beginPath();ctx.moveTo(-12,-24);ctx.bezierCurveTo(-36,-48,18,-45,-5,-62);ctx.stroke()});
+      sticker(290,85,124,90,'#F8CECE',()=>{ctx.fillStyle='#D84B5A';ctx.beginPath();ctx.moveTo(0,29);ctx.bezierCurveTo(-78,-15,-19,-56,0,-23);ctx.bezierCurveTo(24,-59,77,-13,0,29);ctx.fill();ctx.stroke()});
+      sticker(375,194,170,67,'#D0E7F5',()=>{ctx.font='bold 31px monospace';ctx.textAlign='center';ctx.fillStyle='#263D64';ctx.fillText('Ctrl+Z',0,11)});
+      sticker(90,264,100,99,'#F8D66B',()=>{ctx.fillStyle='#E9A82D';ctx.beginPath();for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,r=i%2?17:38;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.stroke()});
+      sticker(251,234,115,113,'#D9E6C9',()=>{ctx.fillStyle='#FFFEF4';for(let i=0;i<5;i++){ctx.save();ctx.rotate(i*Math.PI*2/5);ctx.beginPath();ctx.ellipse(0,-21,13,24,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}ctx.fillStyle='#F1C958';ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.stroke()});
+      sticker(357,325,200,63,'#FFF8E7',()=>{ctx.font='bold 28px "Patrick Hand", cursive';ctx.textAlign='center';ctx.fillStyle='#264C8C';ctx.fillText('BSIT 3-1',0,10)});
+    });
+    const back=new THREE.Mesh(new THREE.PlaneGeometry(2.12,1.36),new THREE.MeshStandardMaterial({map:stickers,roughness:.8}));
+    back.name='laptop-sticker-lid';back.position.z=-.043;back.rotation.y=Math.PI;lid.add(back);
+    const keyboard=this.cachedDetailTexture('laptop-keyboard',512,256,ctx=>{
+      ctx.fillStyle='#596A80';ctx.fillRect(0,0,512,256);ctx.fillStyle='#283547';ctx.fillRect(12,12,488,179);
+      for(let row=0;row<5;row++)for(let col=0;col<14;col++){
+        if(row===4&&col>3&&col<10)continue;
+        const x=20+col*34,y=20+row*32,w=row===4&&col===3?234:29;
+        ctx.fillStyle='#D6DFE6';ctx.strokeStyle='#17283D';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x,y,w,26,4);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#4E6079';ctx.fillRect(x+6,y+6,row===4?10:6,3);
+      }
+      ctx.fillStyle='#334458';ctx.beginPath();ctx.roundRect(171,202,170,45,6);ctx.fill();ctx.strokeStyle='#8797A9';ctx.lineWidth=2;ctx.stroke();
+    });
+    const deck=new THREE.Mesh(new THREE.PlaneGeometry(2.09,1.45),new THREE.MeshStandardMaterial({map:keyboard,roughness:.9}));deck.name='laptop-keyboard';deck.rotation.x=-Math.PI/2;deck.position.set(0,.041,.02);laptop.add(deck);
+    const pad=new THREE.Mesh(this.studentGeometry.box,trim);pad.name='laptop-recessed-trackpad';pad.scale.set(.63,.002,.23);pad.position.set(0,.039,.57);laptop.add(pad);
+    const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,2.05,12),metal);hinge.name='laptop-hinge';hinge.rotation.z=Math.PI/2;hinge.position.set(0,.06,-.73);laptop.add(hinge);
+    const hardware=new THREE.InstancedMesh(this.studentGeometry.box,ink,6),pose=new THREE.Object3D();
+    const parts=[[-1.101,-.003,.35,.006,.025,.16],[1.101,-.003,.16,.006,.025,.18],...[-.85,.85].flatMap(x=>[-.56,.56].map(z=>[x,-.038,z,.14,.015,.10]))];
+    parts.forEach(([x,y,z,w,h,d],i)=>{pose.position.set(x,y,z);pose.scale.set(w,h,d);pose.updateMatrix();hardware.setMatrixAt(i,pose.matrix)});hardware.name='laptop-ports-and-feet';laptop.add(hardware);
+    const webcam=new THREE.Mesh(this.studentGeometry.sphere,ink);webcam.scale.set(.023,.023,.012);webcam.position.set(0,.647,.046);lid.add(webcam);
+    const chin=new THREE.Mesh(this.studentGeometry.box,ink);chin.scale.set(2.08,.04,.012);chin.position.set(0,-.645,.046);lid.add(chin);
+    const edge=new THREE.Mesh(this.studentGeometry.box,trim);edge.scale.set(2.17,.014,1.57);edge.position.y=.031;laptop.add(edge);
+    laptop.traverse(o=>{if(o.isMesh)o.userData.type='laptop'});
+  }
+
   buildProps() {
     // 1. LAPTOP (Whole laptop is 100% clickable)
     const laptopGroup = new THREE.Group();
@@ -1552,7 +1638,11 @@ class DeskScene {
     laptopBase.userData = { type: 'laptop' };
     laptopGroup.add(laptopBase);
 
-    const lidGeo = new THREE.BoxGeometry(2.2, 1.45, 0.05);
+    const shape=new THREE.Shape(),w=2.2,h=1.45,r=.065;
+    shape.moveTo(-w/2+r,-h/2);shape.lineTo(w/2-r,-h/2);shape.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);
+    shape.lineTo(w/2,h/2-r);shape.quadraticCurveTo(w/2,h/2,w/2-r,h/2);shape.lineTo(-w/2+r,h/2);
+    shape.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);shape.lineTo(-w/2,-h/2+r);shape.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);
+    const lidGeo=new THREE.ExtrudeGeometry(shape,{depth:.08,bevelEnabled:false,curveSegments:4});lidGeo.translate(0,0,-.04);
     const laptopLid = new THREE.Mesh(lidGeo, metalMat);
     laptopLid.position.set(0, 0.72, -0.78);
     laptopLid.rotation.x = 0.18;
@@ -1585,13 +1675,15 @@ class DeskScene {
     sCtx.fillText('Click anywhere to restart motivation...', 45, 235);
 
     const screenTex = new THREE.CanvasTexture(screenCanvas);
-    const screenGeo = new THREE.PlaneGeometry(2.05, 1.3);
+    const screenGeo = new THREE.PlaneGeometry(2.04, 1.20);
     const screenMat = new THREE.MeshBasicMaterial({ map: screenTex });
     const screenMesh = new THREE.Mesh(screenGeo, screenMat);
     screenMesh.position.set(0, 0.72, -0.75);
     screenMesh.rotation.x = 0.18;
     screenMesh.userData = { type: 'laptop' };
     laptopGroup.add(screenMesh);
+
+    this.detailLaptop(laptopGroup,laptopLid,metalMat);
 
     // Full-coverage hit box for laptop on Layer 1 (camera-invisible, raycaster-visible)
     const laptopHitBox = new THREE.Mesh(
